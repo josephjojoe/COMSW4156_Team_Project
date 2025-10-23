@@ -2,6 +2,7 @@ package dev.coms4156.project.groupproject;
 
 import dev.coms4156.project.groupproject.model.Queue;
 import dev.coms4156.project.groupproject.model.Result;
+import dev.coms4156.project.groupproject.model.Task;
 import dev.coms4156.project.groupproject.service.QueueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,12 +62,14 @@ public class QueueServiceUnitTests {
   @Test
   void testGetResult(){
     Queue queue = queueService.createQueue("Queue1");
-    UUID uuid = UUID.randomUUID();
-    Result result = new Result(uuid, "Completed", Result.ResultStatus.SUCCESS);
+    Task task = new Task("Test task", 1);
+    queueService.enqueueTask(queue.getId(), task);
+
+    Result result = new Result(task.getId(), "Completed", Result.ResultStatus.SUCCESS);
     queueService.submitResult(queue.getId(), result);
-    Result retrieved = queueService.getResult(queue.getId(), uuid);
+    Result retrieved = queueService.getResult(queue.getId(), task.getId());
     assertNotNull(retrieved);
-    assertEquals(uuid, retrieved.getTaskId());
+    assertEquals(task.getId(), retrieved.getTaskId());
   }
 
   @Test
@@ -80,8 +83,9 @@ public class QueueServiceUnitTests {
   @Test
   void testSubmitResult(){
     Queue queue = queueService.createQueue("Queue1");
-    UUID uuid = UUID.randomUUID();
-    Result result = new Result(uuid, "Success", Result.ResultStatus.SUCCESS);
+    Task task = new Task("Test task", 1);
+    queueService.enqueueTask(queue.getId(), task);
+    Result result = new Result(task.getId(), "Success", Result.ResultStatus.SUCCESS);
     queueService.submitResult(queue.getId(), result);
     assertEquals(1, queue.getResultCount());
   }
