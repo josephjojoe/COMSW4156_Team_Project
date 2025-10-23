@@ -53,7 +53,7 @@ public class QueueService {
      * @throws IllegalArgumentException if queueId is null/empty or task is null
      * @throws IllegalStateException if the queue with the given ID does not exist
      */
-    public void enqueueTask(String queueId, Task task) {
+    public void enqueueTask(UUID queueId, Task task) {
         validateQueueId(queueId);
         if (task == null) {
             throw new IllegalArgumentException("Task cannot be null");
@@ -79,7 +79,7 @@ public class QueueService {
      * @throws IllegalArgumentException if queueId is null or empty
      * @throws IllegalStateException if the queue with the given ID does not exist
      */
-    public Task dequeueTask(String queueId) {
+    public Task dequeueTask(UUID queueId) {
         validateQueueId(queueId);
         
         Queue queue = queueStore.getQueue(queueId);
@@ -102,7 +102,7 @@ public class QueueService {
      * @throws IllegalArgumentException if queueId is null/empty or result is null
      * @throws IllegalStateException if the queue with the given ID does not exist
      */
-    public void submitResult(String queueId, Result result) {
+    public void submitResult(UUID queueId, Result result) {
         validateQueueId(queueId);
         if (result == null) {
             throw new IllegalArgumentException("Result cannot be null");
@@ -128,7 +128,7 @@ public class QueueService {
      * @throws IllegalArgumentException if queueId or taskId is null
      * @throws IllegalStateException if the queue with the given ID does not exist
      */
-    public Result getResult(String queueId, UUID taskId) {
+    public Result getResult(UUID queueId, UUID taskId) {
         validateQueueId(queueId);
         if (taskId == null) {
             throw new IllegalArgumentException("Task ID cannot be null");
@@ -149,7 +149,7 @@ public class QueueService {
      * @return the Queue instance, or null if not found
      * @throws IllegalArgumentException if queueId is null or empty
      */
-    public Queue getQueue(String queueId) {
+    public Queue getQueue(UUID queueId) {
         validateQueueId(queueId);
         return queueStore.getQueue(queueId);
     }
@@ -161,7 +161,7 @@ public class QueueService {
      * @return true if the queue exists, false otherwise
      * @throws IllegalArgumentException if queueId is null or empty
      */
-    public boolean queueExists(String queueId) {
+    public boolean queueExists(UUID queueId) {
         validateQueueId(queueId);
         return queueStore.getQueue(queueId) != null;
     }
@@ -172,9 +172,9 @@ public class QueueService {
      * @param queueId the queue ID to validate
      * @throws IllegalArgumentException if queueId is null or empty
      */
-    private void validateQueueId(String queueId) {
-        if (queueId == null || queueId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Queue ID cannot be null or empty");
+    private void validateQueueId(UUID queueId) {
+        if (queueId == null) {
+            throw new IllegalArgumentException("Queue ID cannot be null");
         }
     }
 }
