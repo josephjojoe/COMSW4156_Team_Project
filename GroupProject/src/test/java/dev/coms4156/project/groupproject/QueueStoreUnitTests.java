@@ -19,13 +19,19 @@ import org.junit.jupiter.api.Test;
 public class QueueStoreUnitTests {
   private QueueStore store;
 
-
+  /**
+  * Before each test it resets the QueueStore state
+  * to nsures each test executes in a clean and isolated environment.
+  */
   @BeforeEach
   void setUp() {
     store = QueueStore.getInstance();
     store.clearAll();
   }
 
+  /**
+  * Verifies that multiple calls to getInstance() return the same object reference.
+  */
   @Test
   public void testSingletonInstance() {
     QueueStore store1 = QueueStore.getInstance();
@@ -33,6 +39,9 @@ public class QueueStoreUnitTests {
     assertSame(store1, store2, "QueueStore return the same instance");
   }
 
+  /**
+  * Verifies that a new Queue can be created and retrieved successfully.
+  */
   @Test
   public void testCreateQueue() {
     Queue q1 = store.createQueue("Queue 1");
@@ -41,6 +50,9 @@ public class QueueStoreUnitTests {
     assertNotNull(store.getQueue(q1.getId()));
   }
 
+  /**
+   * Verifies that an existing queue can be removed successfully.
+   */
   @Test
   public void testRemoveQueueSuccess() {
     Queue q = store.createQueue("Remove");
@@ -48,6 +60,9 @@ public class QueueStoreUnitTests {
     assertNull(store.getQueue(q.getId()));
   }
 
+  /**
+   * Verifies that removing a non-existent queue fails gracefully.
+   */
   @Test
   public void testRemoveQueueFailure() {
     assertFalse(store.removeQueue(UUID.randomUUID()));
