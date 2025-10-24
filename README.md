@@ -211,7 +211,7 @@ ___
 - Class Diagram: https://lucid.app/lucidchart/8a4ba69a-6f81-4bf6-a6c1-08ea5ab49e14/edit?beaconFlowId=781D649DE0B7F69C&invitationId=inv_2c0e7564-fc77-4029-bdf8-8b5c33887816&page=0_0#
 - Project Management: GitHub Issues/Projects (or Linear) — to be linked
 # Style Checking Report
-___
+Our codebase passes all Checkstyle checks with **zero violations or warnings**.
 # Branch Coverage Report
 ## **Current Coverage Status (Iteration 1)**
 
