@@ -21,13 +21,16 @@ public class QueueUnitTests {
   private Queue queue;
 
   /**
-   * Sets up a queue before each test case.
+   * Sets up a queue instance before each test case.
    */
   @BeforeEach
   void setUp() {
     queue = new Queue("Test Queue");
   }
 
+  /**
+  * Verifies that a new Queue is properly initialized.
+  */
   @Test
   void testQueueEmptyInitialization() {
     assertNotNull(queue.getId());
@@ -36,12 +39,19 @@ public class QueueUnitTests {
     assertEquals(0, queue.getResultCount());
     assertFalse(queue.hasPendingTasks());
   }
+  /**
+  * Verifies that attempting to enqueue a null Task fails gracefully.
+  */
 
   @Test
   void testEnqueueNullTask() {
     assertEquals(false, queue.enqueue(null));
   }
 
+  /**
+  * Verifies that a valid Task can be enqueued into the Queue successfully.
+  * Ensures the task count increases and that the queue correctly reports having pending tasks.
+  */
   @Test
   void testEnqueueTask() {
     Task task = new Task("Print 'Hello'", 1);
@@ -50,6 +60,11 @@ public class QueueUnitTests {
     assertFalse(queue.hasPendingTasks() == false); // sanity check
   }
 
+  /**
+  * Checks that adding a null Result is handled safely.
+  * Meaning the queue should not accept null results and
+  * retrieving a result for a random ID should return null.
+  */
   @Test
   void testAddNullResult() {
     UUID taskId = UUID.randomUUID();
@@ -57,11 +72,16 @@ public class QueueUnitTests {
     assertNull(queue.getResult(taskId));
   }
 
+  /**
+  * Verifies that a valid Result can be added and retrieved from the Queue.
+  */
   @Test
   void testAddResult() {
     UUID taskId = UUID.randomUUID();
     Result result = new Result(taskId, "Task completed successfully", Result.ResultStatus.SUCCESS);
+    // Add result to queue and verify it was success
     assertTrue(queue.addResult(result));
+    // Get result from queue and verify it matches the one added
     assertEquals(result, queue.getResult(taskId));
   }
 
