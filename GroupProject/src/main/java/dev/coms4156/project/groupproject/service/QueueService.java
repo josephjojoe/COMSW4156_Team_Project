@@ -5,11 +5,13 @@ import dev.coms4156.project.groupproject.model.QueueStore;
 import dev.coms4156.project.groupproject.model.Task;
 import dev.coms4156.project.groupproject.model.Result;
 import java.util.UUID;
+import org.springframework.stereotype.Service;
 
 /**
  * Service class that provides business logic for queue operations.
  * Acts as an intermediary between the controller layer and the data layer.
  */
+@Service
 public class QueueService {
     
     private final QueueStore queueStore;
