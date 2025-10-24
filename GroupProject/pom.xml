@@ -91,6 +91,29 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.21.2</version>
+				<configuration>
+					<printFailingErrors>true</printFailingErrors>
+					<verbose>true</verbose>
+					<linkXRef>false</linkXRef>
+					<minimumPriority>5</minimumPriority>
+					<rulesets>
+						<ruleset>rulesets/java/maven-pmd-plugin-default.xml</ruleset>
+						<ruleset>category/java/performance.xml</ruleset>
+					</rulesets>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+							<goal>cpd-check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 

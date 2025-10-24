@@ -14,7 +14,7 @@ public final class QueueStore {
   /**
    * Singleton instance of QueueStore.
    */
-  private static QueueStore instance = null;
+  private static QueueStore instance;
 
 
   /**

@@ -41,7 +41,7 @@ public class QueueService {
    * @throws IllegalArgumentException if the name is null or empty
    */
   public Queue createQueue(String name) {
-    if (name == null || name.trim().isEmpty()) {
+    if (name == null || name.isBlank()) {
       throw new IllegalArgumentException("Queue name cannot be null or empty");
     }
     return queueStore.createQueue(name.trim());

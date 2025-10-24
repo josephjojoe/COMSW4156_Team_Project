@@ -212,9 +212,12 @@ ___
 - Project Management: GitHub Issues/Projects (or Linear) — to be linked
 # Style Checking Report
 Our codebase passes all Checkstyle checks with **zero violations or warnings**.
+
+There's a copy of the Checkstyle + PMD result files in the /metrics directory.
 # Branch Coverage Report
 ## **Current Coverage Status (Iteration 1)**
 
+![Check Style](images/Branch_Coverage_Report.png)
 | Metric | Coverage |
 |--------|----------|
 | **Instructions** | 81% |
