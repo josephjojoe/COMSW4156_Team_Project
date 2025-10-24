@@ -212,8 +212,17 @@ ___
 - Project Management: GitHub Issues/Projects (or Linear) — to be linked
 # Style Checking Report
 ___
-# Branch Coverage Reporting
-___
+# Branch Coverage Report
+## **Current Coverage Status (Iteration 1)**
+
+| Metric | Coverage |
+|--------|----------|
+| **Instructions** | 81% |
+| **Branches** | 59% |
+| **Lines** | 83% |
+| **Methods** | 90% |
+| **Classes** | 100% |
+
 # Static Code Analysis
 ___
 # Tools used
