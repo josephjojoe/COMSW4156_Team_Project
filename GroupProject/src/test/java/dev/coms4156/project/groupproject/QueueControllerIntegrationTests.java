@@ -15,6 +15,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+/**
+ * Integration tests for the QueueController REST endpoints.
+ * Tests the complete flow of queue operations through HTTP requests.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 public class QueueControllerIntegrationTests {
@@ -53,7 +57,8 @@ public class QueueControllerIntegrationTests {
 
     UUID taskId =
         UUID.fromString(
-            objectMapper.readTree(enqueueRes.getResponse().getContentAsString()).get("id").asText());
+            objectMapper.readTree(enqueueRes.getResponse().getContentAsString())
+                .get("id").asText());
 
     // Dequeue task
     mockMvc
@@ -98,7 +103,8 @@ public class QueueControllerIntegrationTests {
             .andReturn();
     UUID queueId =
         UUID.fromString(
-            objectMapper.readTree(createRes.getResponse().getContentAsString()).get("id").asText());
+            objectMapper.readTree(createRes.getResponse().getContentAsString())
+                .get("id").asText());
 
     mockMvc.perform(get("/queue/" + queueId + "/task")).andExpect(status().isNoContent());
   }
