@@ -44,7 +44,7 @@ public class QueueServiceUnitTests {
 
   @Test
   void testGetQueueNotFound(){
-    Queue queue = queueService.getQueue("nonexistent");
+    Queue queue = queueService.getQueue(UUID.randomUUID());
     assertNull(queue);
   }
 
@@ -56,7 +56,7 @@ public class QueueServiceUnitTests {
 
   @Test
   void testQueueExistsReturnsFalse(){
-    assertFalse(queueService.queueExists("fakeID"));
+    assertFalse(queueService.queueExists(UUID.randomUUID()));
   }
 
   @Test
