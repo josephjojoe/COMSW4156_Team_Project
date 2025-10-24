@@ -1,16 +1,20 @@
 package dev.coms4156.project.groupproject;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import dev.coms4156.project.groupproject.model.Queue;
 import dev.coms4156.project.groupproject.model.Result;
 import dev.coms4156.project.groupproject.model.Task;
 import dev.coms4156.project.groupproject.service.QueueService;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 /**
  * This class contains the unit tests for the QueueService class.
  */
@@ -28,14 +32,14 @@ public class QueueServiceUnitTests {
   }
 
   @Test
-  void testCreateQueueWithValidName(){
+  void testCreateQueueWithValidName() {
     Queue queue = queueService.createQueue("Queue1");
     assertNotNull(queue);
     assertEquals("Queue1", queue.getName());
   }
 
   @Test
-  void testGetQueueExists(){
+  void testGetQueueExists() {
     Queue queue = queueService.createQueue("Queue1");
     Queue queue2 = queueService.getQueue(queue.getId());
     assertNotNull(queue2);
@@ -43,24 +47,24 @@ public class QueueServiceUnitTests {
   }
 
   @Test
-  void testGetQueueNotFound(){
+  void testGetQueueNotFound() {
     Queue queue = queueService.getQueue(UUID.randomUUID());
     assertNull(queue);
   }
 
   @Test
-  void testQueueExistsReturnsTrue(){
+  void testQueueExistsReturnsTrue() {
     Queue queue = queueService.createQueue("Queue1");
     assertTrue(queueService.queueExists(queue.getId()));
   }
 
   @Test
-  void testQueueExistsReturnsFalse(){
+  void testQueueExistsReturnsFalse() {
     assertFalse(queueService.queueExists(UUID.randomUUID()));
   }
 
   @Test
-  void testGetResult(){
+  void testGetResult() {
     Queue queue = queueService.createQueue("Queue1");
     Task task = new Task("Test task", 1);
     queueService.enqueueTask(queue.getId(), task);
@@ -73,7 +77,7 @@ public class QueueServiceUnitTests {
   }
 
   @Test
-  void testGetResultNotFound(){
+  void testGetResultNotFound() {
     Queue queue = queueService.createQueue("Queue1");
     UUID uuid = UUID.randomUUID();
     Result result = queueService.getResult(queue.getId(), uuid);
@@ -81,7 +85,7 @@ public class QueueServiceUnitTests {
   }
 
   @Test
-  void testSubmitResult(){
+  void testSubmitResult() {
     Queue queue = queueService.createQueue("Queue1");
     Task task = new Task("Test task", 1);
     queueService.enqueueTask(queue.getId(), task);
