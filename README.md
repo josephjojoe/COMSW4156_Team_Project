@@ -4,7 +4,7 @@ This is the GitHub repository for the Team Project associated with COMS 4156 Adv
 
 # Viewing the Project Repository
 ___
-Please use the following link to view the repository relevant to the app: https://github.com/krn2125/COMSW4156_Team_Project
+Please use the following link to view the repository relevant to the app: [https://github.com/josephjojoe/COMSW4156_Team_Project](https://github.com/josephjojoe/COMSW4156_Team_Project)
 
 # Building and Running a Local Instance
 ___
