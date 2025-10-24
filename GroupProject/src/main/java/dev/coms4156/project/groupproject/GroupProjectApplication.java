@@ -7,11 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * This class contains the startup of the application.
  */
 @SpringBootApplication
-public final class GroupProjectApplication {
-  private GroupProjectApplication() {
-    throw new UnsupportedOperationException("Utility class");
-  }
-
+public class GroupProjectApplication {
   public static void main(String[] args) {
     SpringApplication.run(GroupProjectApplication.class, args);
   }
