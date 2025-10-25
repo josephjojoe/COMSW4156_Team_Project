@@ -5,6 +5,8 @@ import dev.coms4156.project.groupproject.model.Result;
 import dev.coms4156.project.groupproject.model.Task;
 import dev.coms4156.project.groupproject.service.QueueService;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class QueueController {
 
   private final QueueService queueService;
+  private static final Logger log = LoggerFactory.getLogger(QueueController.class);
 
   /**
    * Constructs a new QueueController with the specified QueueService.
@@ -43,6 +46,7 @@ public class QueueController {
    */
   @PostMapping
   public ResponseEntity<Queue> createQueue(@RequestBody CreateQueueRequest request) {
+    log.info("createQueue name={}", request.getName());
     Queue queue = queueService.createQueue(request.getName());
     return ResponseEntity.status(HttpStatus.CREATED).body(queue);
   }
@@ -58,6 +62,7 @@ public class QueueController {
   public ResponseEntity<Task> enqueueTask(
       @PathVariable("queueId") UUID queueId,
       @RequestBody EnqueueTaskRequest request) {
+    log.info("enqueueTask queueId={} priority={}", queueId, request.getPriority());
     Task task = new Task(request.getParams(), request.getPriority());
     queueService.enqueueTask(queueId, task);
     return ResponseEntity.status(HttpStatus.CREATED).body(task);
@@ -71,6 +76,7 @@ public class QueueController {
    */
   @GetMapping("/{queueId}/task")
   public ResponseEntity<Task> dequeueTask(@PathVariable("queueId") UUID queueId) {
+    log.info("dequeueTask queueId={}", queueId);
     Task task = queueService.dequeueTask(queueId);
     if (task == null) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -89,6 +95,7 @@ public class QueueController {
   public ResponseEntity<Result> submitResult(
       @PathVariable("queueId") UUID queueId,
       @RequestBody SubmitResultRequest request) {
+    log.info("submitResult queueId={} taskId={} status={}", queueId, request.getTaskId(), request.getStatus());
     Result result = new Result(request.getTaskId(), request.getOutput(), request.getStatus());
     queueService.submitResult(queueId, result);
     return ResponseEntity.status(HttpStatus.CREATED).body(result);
@@ -105,6 +112,7 @@ public class QueueController {
   public ResponseEntity<Result> getResult(
       @PathVariable("queueId") UUID queueId,
       @PathVariable("taskId") UUID taskId) {
+    log.info("getResult queueId={} taskId={}", queueId, taskId);
     Result result = queueService.getResult(queueId, taskId);
     if (result == null) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -120,6 +128,7 @@ public class QueueController {
    */
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
+    log.warn("badRequest error={}", ex.getMessage());
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
   }
 
@@ -131,6 +140,7 @@ public class QueueController {
    */
   @ExceptionHandler(IllegalStateException.class)
   public ResponseEntity<String> handleNotFound(IllegalStateException ex) {
+    log.warn("notFound error={}", ex.getMessage());
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
   }
 
