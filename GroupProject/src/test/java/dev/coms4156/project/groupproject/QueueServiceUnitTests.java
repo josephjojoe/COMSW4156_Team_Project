@@ -24,13 +24,19 @@ public class QueueServiceUnitTests {
   private QueueService queueService;
 
   /**
-   * Sets up a queue service before each test case.
+   * Sets up a fresh QueueService instance before each test case.
+   * This ensures test isolation by providing a clean service instance
+   * for each test method.
    */
   @BeforeEach
   void setUp() {
     queueService = new QueueService();
   }
 
+  /**
+   * Tests that createQueue successfully creates a queue with a valid name.
+   * Verifies that the returned queue is not null and has the correct name.
+   */
   @Test
   void testCreateQueueWithValidName() {
     Queue queue = queueService.createQueue("Queue1");
@@ -38,6 +44,11 @@ public class QueueServiceUnitTests {
     assertEquals("Queue1", queue.getName());
   }
 
+  /**
+   * Tests that getQueue retrieves an existing queue by its ID.
+   * Creates a queue and then retrieves it to verify that the same
+   * queue instance is returned.
+   */
   @Test
   void testGetQueueExists() {
     Queue queue = queueService.createQueue("Queue1");
@@ -46,36 +57,64 @@ public class QueueServiceUnitTests {
     assertEquals(queue, queue2);
   }
 
+  /**
+   * Tests that getQueue returns null when attempting to retrieve a non-existent queue.
+   * Uses a random UUID that has not been assigned to any queue to verify
+   * proper handling of missing queues.
+   */
   @Test
   void testGetQueueNotFound() {
     Queue queue = queueService.getQueue(UUID.randomUUID());
     assertNull(queue);
   }
 
+  /**
+   * Tests that queueExists returns true for an existing queue.
+   * Creates a queue and verifies that the existence check returns true.
+   */
   @Test
   void testQueueExistsReturnsTrue() {
     Queue queue = queueService.createQueue("Queue1");
     assertTrue(queueService.queueExists(queue.getId()));
   }
 
+  /**
+   * Tests that queueExists returns false for a non-existent queue.
+   * Uses a random UUID to verify that the existence check properly
+   * returns false when the queue does not exist.
+   */
   @Test
   void testQueueExistsReturnsFalse() {
     assertFalse(queueService.queueExists(UUID.randomUUID()));
   }
 
+  /**
+   * Tests that getResult successfully retrieves a submitted result.
+   * Creates a queue, enqueues a task, submits a result for that task,
+   * and verifies that the result can be retrieved with the correct task ID.
+   */
   @Test
   void testGetResult() {
+    // Create queue and enqueue a task
     Queue queue = queueService.createQueue("Queue1");
     Task task = new Task("Test task", 1);
     queueService.enqueueTask(queue.getId(), task);
 
+    // Submit a result for the task
     Result result = new Result(task.getId(), "Completed", Result.ResultStatus.SUCCESS);
     queueService.submitResult(queue.getId(), result);
+
+    // Retrieve and verify the result
     Result retrieved = queueService.getResult(queue.getId(), task.getId());
     assertNotNull(retrieved);
     assertEquals(task.getId(), retrieved.getTaskId());
   }
 
+  /**
+   * Tests that getResult returns null when attempting to retrieve a non-existent result.
+   * Creates a queue but does not submit any results, then attempts to retrieve
+   * a result with a random task ID to verify null is returned.
+   */
   @Test
   void testGetResultNotFound() {
     Queue queue = queueService.createQueue("Queue1");
@@ -84,6 +123,11 @@ public class QueueServiceUnitTests {
     assertNull(result);
   }
 
+  /**
+   * Tests that submitResult successfully adds a result to the queue.
+   * Creates a queue, enqueues a task, submits a result, and verifies
+   * that the queue's result count increases to 1.
+   */
   @Test
   void testSubmitResult() {
     Queue queue = queueService.createQueue("Queue1");
