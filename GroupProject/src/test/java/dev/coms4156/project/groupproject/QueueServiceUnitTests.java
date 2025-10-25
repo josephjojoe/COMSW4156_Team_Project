@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.coms4156.project.groupproject.model.Queue;
@@ -136,5 +137,97 @@ public class QueueServiceUnitTests {
     Result result = new Result(task.getId(), "Success", Result.ResultStatus.SUCCESS);
     queueService.submitResult(queue.getId(), result);
     assertEquals(1, queue.getResultCount());
+  }
+
+  /**
+   * Invalid-path tests exercising QueueService exception branches
+   * (null/blank inputs and nonexistent IDs).
+   */
+  @Test
+  void testCreateQueueWithNullNameThrows() {
+    assertThrows(IllegalArgumentException.class, () -> queueService.createQueue(null));
+  }
+
+  @Test
+  void testCreateQueueWithBlankNameThrows() {
+    assertThrows(IllegalArgumentException.class, () -> queueService.createQueue("  \t\n"));
+  }
+
+  @Test
+  void testGetQueueNullIdThrows() {
+    assertThrows(IllegalArgumentException.class, () -> queueService.getQueue(null));
+  }
+
+  @Test
+  void testQueueExistsNullIdThrows() {
+    assertThrows(IllegalArgumentException.class, () -> queueService.queueExists(null));
+  }
+
+  @Test
+  void testEnqueueTaskNullQueueIdThrows() {
+    Task task = new Task("p", 1);
+    assertThrows(IllegalArgumentException.class, () -> queueService.enqueueTask(null, task));
+  }
+
+  @Test
+  void testEnqueueTaskNullTaskThrows() {
+    UUID randomId = UUID.randomUUID();
+    assertThrows(IllegalArgumentException.class, () -> queueService.enqueueTask(randomId, null));
+  }
+
+  @Test
+  void testEnqueueTaskNonexistentQueueThrows() {
+    UUID randomId = UUID.randomUUID();
+    Task task = new Task("p", 1);
+    assertThrows(IllegalStateException.class, () -> queueService.enqueueTask(randomId, task));
+  }
+
+  @Test
+  void testDequeueTaskNullQueueIdThrows() {
+    assertThrows(IllegalArgumentException.class, () -> queueService.dequeueTask(null));
+  }
+
+  @Test
+  void testDequeueTaskNonexistentQueueThrows() {
+    UUID randomId = UUID.randomUUID();
+    assertThrows(IllegalStateException.class, () -> queueService.dequeueTask(randomId));
+  }
+
+  @Test
+  void testSubmitResultNullQueueIdThrows() {
+    Result result = new Result(UUID.randomUUID(), "ok", Result.ResultStatus.SUCCESS);
+    assertThrows(IllegalArgumentException.class, () -> queueService.submitResult(null, result));
+  }
+
+  @Test
+  void testSubmitResultNullResultThrows() {
+    UUID randomId = UUID.randomUUID();
+    assertThrows(IllegalArgumentException.class, () -> queueService.submitResult(randomId, null));
+  }
+
+  @Test
+  void testSubmitResultNonexistentQueueThrows() {
+    UUID randomId = UUID.randomUUID();
+    Result result = new Result(UUID.randomUUID(), "ok", Result.ResultStatus.SUCCESS);
+    assertThrows(IllegalStateException.class, () -> queueService.submitResult(randomId, result));
+  }
+
+  @Test
+  void testGetResultNullQueueIdThrows() {
+    assertThrows(IllegalArgumentException.class, () ->
+          queueService.getResult(null, UUID.randomUUID()));
+  }
+
+  @Test
+  void testGetResultNullTaskIdThrows() {
+    UUID randomId = UUID.randomUUID();
+    assertThrows(IllegalArgumentException.class, () -> queueService.getResult(randomId, null));
+  }
+
+  @Test
+  void testGetResultNonexistentQueueThrows() {
+    UUID randomId = UUID.randomUUID();
+    assertThrows(IllegalStateException.class, () ->
+          queueService.getResult(randomId, UUID.randomUUID()));
   }
 }
