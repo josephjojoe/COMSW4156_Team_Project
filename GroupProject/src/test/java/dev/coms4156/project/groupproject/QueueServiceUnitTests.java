@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.coms4156.project.groupproject.model.Queue;
 import dev.coms4156.project.groupproject.model.Result;
@@ -214,7 +214,8 @@ public class QueueServiceUnitTests {
 
   @Test
   void testGetResultNullQueueIdThrows() {
-    assertThrows(IllegalArgumentException.class, () -> queueService.getResult(null, UUID.randomUUID()));
+    assertThrows(IllegalArgumentException.class, () ->
+          queueService.getResult(null, UUID.randomUUID()));
   }
 
   @Test
@@ -226,6 +227,7 @@ public class QueueServiceUnitTests {
   @Test
   void testGetResultNonexistentQueueThrows() {
     UUID randomId = UUID.randomUUID();
-    assertThrows(IllegalStateException.class, () -> queueService.getResult(randomId, UUID.randomUUID()));
+    assertThrows(IllegalStateException.class, () ->
+          queueService.getResult(randomId, UUID.randomUUID()));
   }
 }

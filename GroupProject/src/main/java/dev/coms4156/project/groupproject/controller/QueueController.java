@@ -95,7 +95,8 @@ public class QueueController {
   public ResponseEntity<Result> submitResult(
       @PathVariable("queueId") UUID queueId,
       @RequestBody SubmitResultRequest request) {
-    log.info("submitResult queueId={} taskId={} status={}", queueId, request.getTaskId(), request.getStatus());
+    log.info("submitResult queueId={} taskId={} status={}",
+          queueId, request.getTaskId(), request.getStatus());
     Result result = new Result(request.getTaskId(), request.getOutput(), request.getStatus());
     queueService.submitResult(queueId, result);
     return ResponseEntity.status(HttpStatus.CREATED).body(result);
