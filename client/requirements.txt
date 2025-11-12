@@ -1,0 +1,13 @@
+# Python dependencies for PDF Quiz Generator
+#
+# Required packages:
+# - requests (HTTP client)
+# - pyyaml (config loading)
+# - pdf2image (PDF to images)
+# - PyPDF2 (PDF metadata)
+# - Pillow (image handling)
+# - openai (OpenAI API)
+# - OR anthropic (Anthropic API)
+# - pytest (testing - optional)
+# - responses (mocking - optional)
+
