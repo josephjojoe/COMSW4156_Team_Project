@@ -1,4 +1,4 @@
-package dev.coms4156.project.groupproject.model;
+package dev.coms4156.project.server.model;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

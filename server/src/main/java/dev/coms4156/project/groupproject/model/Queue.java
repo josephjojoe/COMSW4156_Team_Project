@@ -1,4 +1,4 @@
-package dev.coms4156.project.groupproject.model;
+package dev.coms4156.project.server.model;
 
 import java.util.HashMap;
 import java.util.Map;

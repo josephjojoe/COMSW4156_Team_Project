@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>dev.coms4156.project</groupId>
-	<artifactId>groupproject</artifactId>
+	<artifactId>server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>GroupProject</name>
+	<name>Server</name>
 	<description>COMS W4156 Team Project - Task Queue</description>
 	<url/>
 	<licenses>
