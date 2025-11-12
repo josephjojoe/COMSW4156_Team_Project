@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+
+# Generated files
+storage/pdfs/*
+storage/pages/*
+storage/results/*
+storage/metadata/*
+output/*
+
+# Keep directory structure
+!storage/pdfs/.gitkeep
+!storage/pages/.gitkeep
+!storage/results/.gitkeep
+!storage/metadata/.gitkeep
+!output/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Config with secrets
+config.yaml
+
