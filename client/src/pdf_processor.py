@@ -1,41 +1,35 @@
-"""
-PDF Processing Module
+import uuid
+from pathlib import Path
+from typing import List
+from pdf2image import convert_from_path
+from PyPDF2 import PdfReader
+from PIL import Image
 
-Purpose: Split PDF into pages and convert to images
+class PDFProcessor:
+    def __init__(self, pages_output_dir: str):
+        self.pages_output_dir = Path(pages_output_dir)
+        self.pages_output_dir.mkdir(parents=True, exist_ok=True)
 
-Class: PDFProcessor
-    
-    Fields:
-        - pages_output_dir: Path (where to save page images)
-    
-    Methods:
-        - __init__(pages_dir: str)
-            Initialize with output directory path
-            Create directory if it doesn't exist
-        
-        - split_pdf_to_images(pdf_path: str, pdf_id: str) -> List[str]
-            Convert PDF pages to PNG images
-            Args:
-                pdf_path: Path to PDF file
-                pdf_id: Unique identifier for this PDF (for naming)
-            Returns:
-                List of paths to generated page images
-            Format: {pdf_id}_page_{num:04d}.png
-        
-        - get_pdf_page_count(pdf_path: str) -> int
-            Get number of pages without extracting images
-            Useful for validation
-        
-        - validate_pdf(pdf_path: str) -> bool
-            Check if file is a valid PDF
-            Returns True/False
+    def validate_pdf(self, pdf_path: str) -> bool:
+        try:
+            PdfReader(pdf_path)
+            return True
+        except Exception:
+            return False
 
-Dependencies:
-    - pdf2image (requires poppler-utils installed on system)
-    - PyPDF2
-    - Pillow
-    - pathlib
-    - logging (optional)
+    def get_pdf_page_count(self, pdf_path: str) -> int:
+        reader = PdfReader(pdf_path)
+        return len(reader.pages)
 
-"""
+    def split_pdf_to_images(self, pdf_path: str, pdf_id: str) -> List[str]:
+        output_paths = []
+        images = convert_from_path(pdf_path)
+        for index in range(1, len(images) + 1):
+            page = images[index - 1]
+            filename = f"{pdf_id}_page_{index}.png"
+            out_path = self.pages_output_dir / filename
+            page.save(out_path, format="PNG")
+            output_paths.append(str(out_path))
+        return output_paths
+
 
