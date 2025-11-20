@@ -10,4 +10,10 @@
 # - OR anthropic (Anthropic API)
 # - pytest (testing - optional)
 # - responses (mocking - optional)
+pdf2image==1.17.0
+PyPDF2==3.0.1
+Pillow==10.2.0
+pytest-cov
+
+
 
