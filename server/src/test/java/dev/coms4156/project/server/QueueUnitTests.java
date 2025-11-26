@@ -66,6 +66,7 @@ public class QueueUnitTests {
     Task high = new Task("High", 1);
     queue.enqueue(low);
     queue.enqueue(high);
+
     Task first = queue.dequeue();
     assertEquals(high, first, "Highest priority task should be dequeued first");
   }
@@ -159,6 +160,7 @@ public class QueueUnitTests {
     queue.enqueue(t1);
     queue.enqueue(t2);
     queue.enqueue(t3);
+
     assertEquals(t3, queue.dequeue());
     assertEquals(t2, queue.dequeue()); 
     assertEquals(t1, queue.dequeue()); 
