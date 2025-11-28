@@ -1,12 +1,12 @@
-package dev.coms4156.project.server;
+package dev.coms4156.project.groupproject;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import dev.coms4156.project.server.model.Task;
-import dev.coms4156.project.server.model.Task.TaskStatus;
+import dev.coms4156.project.groupproject.model.Task;
+import dev.coms4156.project.groupproject.model.Task.TaskStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

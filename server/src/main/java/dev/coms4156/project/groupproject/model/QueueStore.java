@@ -1,4 +1,4 @@
-package dev.coms4156.project.server.model;
+package dev.coms4156.project.groupproject.model;
 
 import java.util.Map;
 import java.util.UUID;
