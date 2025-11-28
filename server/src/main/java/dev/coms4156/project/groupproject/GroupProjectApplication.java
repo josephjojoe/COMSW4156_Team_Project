@@ -1,4 +1,4 @@
-package dev.coms4156.project.server;
+package dev.coms4156.project.groupproject;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

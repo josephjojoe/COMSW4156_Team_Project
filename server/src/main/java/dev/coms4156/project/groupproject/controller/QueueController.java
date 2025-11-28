@@ -1,9 +1,9 @@
-package dev.coms4156.project.server.controller;
+package dev.coms4156.project.groupproject.controller;
 
-import dev.coms4156.project.server.model.Queue;
-import dev.coms4156.project.server.model.Result;
-import dev.coms4156.project.server.model.Task;
-import dev.coms4156.project.server.service.QueueService;
+import dev.coms4156.project.groupproject.model.Queue;
+import dev.coms4156.project.groupproject.model.Result;
+import dev.coms4156.project.groupproject.model.Task;
+import dev.coms4156.project.groupproject.service.QueueService;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

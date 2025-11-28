@@ -1,4 +1,4 @@
-package dev.coms4156.project.server;
+package dev.coms4156.project.groupproject;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
