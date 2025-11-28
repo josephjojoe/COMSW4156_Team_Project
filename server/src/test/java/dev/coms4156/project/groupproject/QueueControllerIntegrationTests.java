@@ -224,7 +224,7 @@ public class QueueControllerIntegrationTests {
   @Test
   void logging_each_endpoint_emits_info_log() throws Exception {
     Logger controllerLogger = (Logger) LoggerFactory
-          .getLogger("dev.coms4156.project.server.controller.QueueController");
+          .getLogger("dev.coms4156.project.groupproject.controller.QueueController");
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
     listAppender.start();
     controllerLogger.addAppender(listAppender);
@@ -344,5 +344,233 @@ public class QueueControllerIntegrationTests {
     // Cross-check: ensure no leakage across queues
     mockMvc.perform(get("/queue/" + q1 + "/result/" + t2)).andExpect(status().isNotFound());
     mockMvc.perform(get("/queue/" + q2 + "/result/" + t1)).andExpect(status().isNotFound());
+  }
+
+  // --- Queue Status Endpoint Tests ---
+
+  /** Tests that status endpoint returns correct counts for an empty queue. */
+  @Test
+  void getQueueStatus_emptyQueue_returnsZeroCounts() throws Exception {
+    // Create queue
+    String createQueuePayload = "{\"name\":\"StatusTestQueue\"}";
+    MvcResult createRes = mockMvc
+          .perform(post("/queue")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createQueuePayload))
+          .andExpect(status().isCreated())
+          .andReturn();
+    
+    UUID queueId = UUID.fromString(
+          objectMapper.readTree(createRes.getResponse().getContentAsString())
+                .get("id").asText());
+
+    // Get status for empty queue
+    mockMvc.perform(get("/queue/" + queueId + "/status"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.id").value(queueId.toString()))
+          .andExpect(jsonPath("$.name").value("StatusTestQueue"))
+          .andExpect(jsonPath("$.pendingTaskCount").value(0))
+          .andExpect(jsonPath("$.completedResultCount").value(0))
+          .andExpect(jsonPath("$.hasPendingTasks").value(false));
+  }
+
+  /** Tests that status endpoint returns 404 for non-existent queue. */
+  @Test
+  void getQueueStatus_nonexistentQueue_returnsNotFound() throws Exception {
+    UUID randomId = UUID.randomUUID();
+    mockMvc.perform(get("/queue/" + randomId + "/status"))
+          .andExpect(status().isNotFound());
+  }
+
+  /** Tests that status counts update correctly after enqueue operations. */
+  @Test
+  void getQueueStatus_afterEnqueue_countsUpdateCorrectly() throws Exception {
+    // Create queue
+    String createQueuePayload = "{\"name\":\"EnqueueTestQueue\"}";
+    MvcResult createRes = mockMvc
+          .perform(post("/queue")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createQueuePayload))
+          .andExpect(status().isCreated())
+          .andReturn();
+    
+    UUID queueId = UUID.fromString(
+          objectMapper.readTree(createRes.getResponse().getContentAsString())
+                .get("id").asText());
+
+    // Enqueue 3 tasks
+    for (int i = 1; i <= 3; i++) {
+      String enqueuePayload = String.format(
+            "{\"params\":\"task%d\",\"priority\":%d}", i, i);
+      mockMvc.perform(post("/queue/" + queueId + "/task")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(enqueuePayload))
+            .andExpect(status().isCreated());
+    }
+
+    // Check status shows 3 pending tasks
+    mockMvc.perform(get("/queue/" + queueId + "/status"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.pendingTaskCount").value(3))
+          .andExpect(jsonPath("$.completedResultCount").value(0))
+          .andExpect(jsonPath("$.hasPendingTasks").value(true));
+  }
+
+  /** Tests that status counts update correctly after dequeue and submit operations. */
+  @Test
+  void getQueueStatus_afterDequeueAndSubmit_countsUpdateCorrectly() throws Exception {
+    // Create queue
+    String createQueuePayload = "{\"name\":\"WorkflowTestQueue\"}";
+    MvcResult createRes = mockMvc
+          .perform(post("/queue")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createQueuePayload))
+          .andExpect(status().isCreated())
+          .andReturn();
+    
+    UUID queueId = UUID.fromString(
+          objectMapper.readTree(createRes.getResponse().getContentAsString())
+                .get("id").asText());
+
+    // Enqueue 5 tasks
+    for (int i = 1; i <= 5; i++) {
+      String enqueuePayload = String.format(
+            "{\"params\":\"task%d\",\"priority\":%d}", i, i);
+      mockMvc.perform(post("/queue/" + queueId + "/task")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(enqueuePayload))
+            .andExpect(status().isCreated());
+    }
+
+    // Initial status: 5 pending, 0 completed
+    mockMvc.perform(get("/queue/" + queueId + "/status"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.pendingTaskCount").value(5))
+          .andExpect(jsonPath("$.completedResultCount").value(0))
+          .andExpect(jsonPath("$.hasPendingTasks").value(true));
+
+    // Dequeue and complete 2 tasks
+    for (int i = 0; i < 2; i++) {
+      MvcResult dequeueRes = mockMvc.perform(get("/queue/" + queueId + "/task"))
+            .andExpect(status().isOk())
+            .andReturn();
+      
+      UUID taskId = UUID.fromString(
+            objectMapper.readTree(dequeueRes.getResponse().getContentAsString())
+                  .get("id").asText());
+      
+      String submitPayload = String.format(
+            "{\"taskId\":\"%s\",\"output\":\"result\",\"status\":\"SUCCESS\"}", taskId);
+      mockMvc.perform(post("/queue/" + queueId + "/result")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(submitPayload))
+            .andExpect(status().isCreated());
+    }
+
+    // Status after 2 completed: 3 pending, 2 completed
+    mockMvc.perform(get("/queue/" + queueId + "/status"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.pendingTaskCount").value(3))
+          .andExpect(jsonPath("$.completedResultCount").value(2))
+          .andExpect(jsonPath("$.hasPendingTasks").value(true));
+
+    // Complete remaining 3 tasks
+    for (int i = 0; i < 3; i++) {
+      MvcResult dequeueRes = mockMvc.perform(get("/queue/" + queueId + "/task"))
+            .andExpect(status().isOk())
+            .andReturn();
+      
+      UUID taskId = UUID.fromString(
+            objectMapper.readTree(dequeueRes.getResponse().getContentAsString())
+                  .get("id").asText());
+      
+      String submitPayload = String.format(
+            "{\"taskId\":\"%s\",\"output\":\"result\",\"status\":\"SUCCESS\"}", taskId);
+      mockMvc.perform(post("/queue/" + queueId + "/result")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(submitPayload))
+            .andExpect(status().isCreated());
+    }
+
+    // Final status: 0 pending, 5 completed
+    mockMvc.perform(get("/queue/" + queueId + "/status"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.pendingTaskCount").value(0))
+          .andExpect(jsonPath("$.completedResultCount").value(5))
+          .andExpect(jsonPath("$.hasPendingTasks").value(false));
+  }
+
+  /** Tests that status endpoint handles malformed UUID correctly. */
+  @Test
+  void getQueueStatus_malformedUuid_returnsBadRequest() throws Exception {
+    mockMvc.perform(get("/queue/not-a-valid-uuid/status"))
+          .andExpect(status().isBadRequest());
+  }
+
+  /**
+   * Tests aggregator use case: polling status to detect completion.
+   * This simulates the aggregator's workflow of checking status periodically.
+   */
+  @Test
+  void getQueueStatus_aggregatorUseCase_detectsCompletion() throws Exception {
+    // Create queue
+    String createQueuePayload = "{\"name\":\"AggregatorTestQueue\"}";
+    MvcResult createRes = mockMvc
+          .perform(post("/queue")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createQueuePayload))
+          .andExpect(status().isCreated())
+          .andReturn();
+    
+    UUID queueId = UUID.fromString(
+          objectMapper.readTree(createRes.getResponse().getContentAsString())
+                .get("id").asText());
+
+    int totalTasks = 10;
+
+    // Producer: Enqueue 10 tasks
+    for (int i = 1; i <= totalTasks; i++) {
+      String enqueuePayload = String.format(
+            "{\"params\":\"page%d\",\"priority\":%d}", i, i);
+      mockMvc.perform(post("/queue/" + queueId + "/task")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(enqueuePayload))
+            .andExpect(status().isCreated());
+    }
+
+    // Aggregator: Check initial status
+    mockMvc.perform(get("/queue/" + queueId + "/status"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.pendingTaskCount").value(totalTasks))
+          .andExpect(jsonPath("$.completedResultCount").value(0))
+          .andExpect(jsonPath("$.hasPendingTasks").value(true));
+
+    // Workers: Process all tasks
+    for (int i = 0; i < totalTasks; i++) {
+      MvcResult dequeueRes = mockMvc.perform(get("/queue/" + queueId + "/task"))
+            .andExpect(status().isOk())
+            .andReturn();
+      
+      UUID taskId = UUID.fromString(
+            objectMapper.readTree(dequeueRes.getResponse().getContentAsString())
+                  .get("id").asText());
+      
+      String submitPayload = String.format(
+            "{\"taskId\":\"%s\",\"output\":\"quiz_data_%d\",\"status\":\"SUCCESS\"}", 
+            taskId, i);
+      mockMvc.perform(post("/queue/" + queueId + "/result")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(submitPayload))
+            .andExpect(status().isCreated());
+    }
+
+    // Aggregator: Poll status and detect completion
+    mockMvc.perform(get("/queue/" + queueId + "/status"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.pendingTaskCount").value(0))
+          .andExpect(jsonPath("$.completedResultCount").value(totalTasks))
+          .andExpect(jsonPath("$.hasPendingTasks").value(false));
+
+    // Aggregator can now collect all results knowing processing is complete
   }
 }

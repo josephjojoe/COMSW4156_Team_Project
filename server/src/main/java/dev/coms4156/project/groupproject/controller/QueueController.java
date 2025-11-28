@@ -122,6 +122,33 @@ public class QueueController {
   }
 
   /**
+   * Gets the status of a queue including task and result counts.
+   * This endpoint is used by aggregators to poll for completion status.
+   *
+   * @param queueId the ID of the queue
+   * @return the queue status with task counts and completion information
+   */
+  @GetMapping("/{queueId}/status")
+  public ResponseEntity<QueueStatusResponse> getQueueStatus(
+      @PathVariable("queueId") UUID queueId) {
+    log.info("getQueueStatus queueId={}", queueId);
+    Queue queue = queueService.getQueue(queueId);
+    if (queue == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    
+    QueueStatusResponse status = new QueueStatusResponse(
+        queue.getId(),
+        queue.getName(),
+        queue.getTaskCount(),
+        queue.getResultCount(),
+        queue.hasPendingTasks()
+    );
+    
+    return ResponseEntity.ok(status);
+  }
+
+  /**
    * Handles IllegalArgumentException by returning a BAD_REQUEST response.
    *
    * @param ex the exception to handle
@@ -289,6 +316,131 @@ public class QueueController {
      */
     public void setStatus(Result.ResultStatus status) {
       this.status = status;
+    }
+  }
+
+  /**
+   * Response DTO for queue status information.
+   * Used by aggregators to poll for queue completion status.
+   */
+  public static class QueueStatusResponse {
+    private UUID id;
+    private String name;
+    private int pendingTaskCount;
+    private int completedResultCount;
+    private boolean hasPendingTasks;
+
+    /**
+     * Default constructor.
+     */
+    public QueueStatusResponse() {}
+
+    /**
+     * Constructor with all fields.
+     *
+     * @param id the queue ID
+     * @param name the queue name
+     * @param pendingTaskCount the number of pending tasks in the queue
+     * @param completedResultCount the number of completed results
+     * @param hasPendingTasks whether the queue has any pending tasks
+     */
+    public QueueStatusResponse(UUID id, String name, int pendingTaskCount,
+                               int completedResultCount, boolean hasPendingTasks) {
+      this.id = id;
+      this.name = name;
+      this.pendingTaskCount = pendingTaskCount;
+      this.completedResultCount = completedResultCount;
+      this.hasPendingTasks = hasPendingTasks;
+    }
+
+    /**
+     * Gets the queue ID.
+     *
+     * @return the queue ID
+     */
+    public UUID getId() {
+      return id;
+    }
+
+    /**
+     * Sets the queue ID.
+     *
+     * @param id the queue ID
+     */
+    public void setId(UUID id) {
+      this.id = id;
+    }
+
+    /**
+     * Gets the queue name.
+     *
+     * @return the queue name
+     */
+    public String getName() {
+      return name;
+    }
+
+    /**
+     * Sets the queue name.
+     *
+     * @param name the queue name
+     */
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    /**
+     * Gets the number of pending tasks.
+     *
+     * @return the pending task count
+     */
+    public int getPendingTaskCount() {
+      return pendingTaskCount;
+    }
+
+    /**
+     * Sets the number of pending tasks.
+     *
+     * @param pendingTaskCount the pending task count
+     */
+    public void setPendingTaskCount(int pendingTaskCount) {
+      this.pendingTaskCount = pendingTaskCount;
+    }
+
+    /**
+     * Gets the number of completed results.
+     *
+     * @return the completed result count
+     */
+    public int getCompletedResultCount() {
+      return completedResultCount;
+    }
+
+    /**
+     * Sets the number of completed results.
+     *
+     * @param completedResultCount the completed result count
+     */
+    public void setCompletedResultCount(int completedResultCount) {
+      this.completedResultCount = completedResultCount;
+    }
+
+    /**
+     * Gets whether the queue has pending tasks.
+     *
+     * @return true if there are pending tasks, false otherwise
+     */
+    public boolean isHasPendingTasks() {
+      return hasPendingTasks;
+    }
+
+    /**
+     * Sets whether the queue has pending tasks.
+     *
+     * @param hasPendingTasks true if there are pending tasks, false otherwise
+     */
+    public void setHasPendingTasks(boolean hasPendingTasks) {
+      this.hasPendingTasks = hasPendingTasks;
     }
   }
 }
