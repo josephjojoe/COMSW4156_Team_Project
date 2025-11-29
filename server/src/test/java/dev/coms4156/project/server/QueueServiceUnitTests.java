@@ -1,28 +1,25 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
-package dev.coms4156.project.groupproject;
+package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import dev.coms4156.project.groupproject.model.Queue;
-import dev.coms4156.project.groupproject.model.Result;
-import dev.coms4156.project.groupproject.model.Task;
-import dev.coms4156.project.groupproject.model.Result.ResultStatus;
-import dev.coms4156.project.groupproject.service.QueueService;
+import dev.coms4156.project.server.model.Queue;
+import dev.coms4156.project.server.model.Result;
+import dev.coms4156.project.server.model.Result.ResultStatus;
+import dev.coms4156.project.server.model.Task;
+import dev.coms4156.project.server.service.QueueService;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+/**
+ * Unit tests for QueueService.
+ */
 @SpringBootTest
 public class QueueServiceUnitTests {
   private QueueService queueService;
@@ -42,7 +39,8 @@ public class QueueServiceUnitTests {
   @Test
   void testGetQueueExists() {
     Queue queue = this.queueService.createQueue("Queue1");
-    Queue queue2 = this.queueService.getQueue(queue.getId());
+    UUID queueId = queue.getId();
+    Queue queue2 = this.queueService.getQueue(queueId);
     Assertions.assertNotNull(queue2);
     Assertions.assertEquals(queue, queue2);
   }
@@ -56,7 +54,8 @@ public class QueueServiceUnitTests {
   @Test
   void testQueueExistsReturnsTrue() {
     Queue queue = this.queueService.createQueue("Queue1");
-    Assertions.assertTrue(this.queueService.queueExists(queue.getId()));
+    UUID queueId = queue.getId();
+    Assertions.assertTrue(this.queueService.queueExists(queueId));
   }
 
   @Test
@@ -68,19 +67,22 @@ public class QueueServiceUnitTests {
   void testGetResult() {
     Queue queue = this.queueService.createQueue("Queue1");
     Task task = new Task("Test task", 1);
-    this.queueService.enqueueTask(queue.getId(), task);
+    UUID queueId = queue.getId();
+    this.queueService.enqueueTask(queueId, task);
     Result result = new Result(task.getId(), "Completed", ResultStatus.SUCCESS);
-    this.queueService.submitResult(queue.getId(), result);
-    Result retrieved = this.queueService.getResult(queue.getId(), task.getId());
+    this.queueService.submitResult(queueId, result);
+    UUID taskId = task.getId();
+    Result retrieved = this.queueService.getResult(queueId, taskId);
     Assertions.assertNotNull(retrieved);
-    Assertions.assertEquals(task.getId(), retrieved.getTaskId());
+    Assertions.assertEquals(taskId, retrieved.getTaskId());
   }
 
   @Test
   void testGetResultNotFound() {
     Queue queue = this.queueService.createQueue("Queue1");
+    UUID queueId = queue.getId();
     UUID uuid = UUID.randomUUID();
-    Result result = this.queueService.getResult(queue.getId(), uuid);
+    Result result = this.queueService.getResult(queueId, uuid);
     Assertions.assertNull(result);
   }
 
@@ -88,96 +90,152 @@ public class QueueServiceUnitTests {
   void testSubmitResult() {
     Queue queue = this.queueService.createQueue("Queue1");
     Task task = new Task("Test task", 1);
-    this.queueService.enqueueTask(queue.getId(), task);
+    UUID queueId = queue.getId();
+    this.queueService.enqueueTask(queueId, task);
     Result result = new Result(task.getId(), "Success", ResultStatus.SUCCESS);
-    this.queueService.submitResult(queue.getId(), result);
+    this.queueService.submitResult(queueId, result);
     Assertions.assertEquals(1, queue.getResultCount());
   }
 
   @Test
   void testCreateQueueWithNullNameThrows() {
-    Assertions.assertThrows(IllegalArgumentException.class, () -> this.queueService.createQueue((String)null));
+    Assertions.assertThrows(
+          IllegalArgumentException.class,
+          () -> this.queueService.createQueue((String) null)
+    );
   }
 
   @Test
   void testCreateQueueWithBlankNameThrows() {
-    Assertions.assertThrows(IllegalArgumentException.class, () -> this.queueService.createQueue("  \t\n"));
+    Assertions.assertThrows(
+          IllegalArgumentException.class,
+          () -> this.queueService.createQueue("  \t\n")
+    );
   }
 
   @Test
   void testGetQueueNullIdThrows() {
-    Assertions.assertThrows(IllegalArgumentException.class, () -> this.queueService.getQueue((UUID)null));
+    Assertions.assertThrows(
+          IllegalArgumentException.class,
+          () -> this.queueService.getQueue((UUID) null)
+    );
   }
 
   @Test
   void testQueueExistsNullIdThrows() {
-    Assertions.assertThrows(IllegalArgumentException.class, () -> this.queueService.queueExists((UUID)null));
+    Assertions.assertThrows(
+          IllegalArgumentException.class,
+          () -> this.queueService.queueExists((UUID) null)
+    );
   }
 
   @Test
   void testEnqueueTaskNullQueueIdThrows() {
     Task task = new Task("p", 1);
-    Assertions.assertThrows(IllegalArgumentException.class, () -> this.queueService.enqueueTask((UUID)null, task));
+    Assertions.assertThrows(
+          IllegalArgumentException.class,
+          () -> this.queueService.enqueueTask((UUID) null, task)
+    );
   }
 
   @Test
   void testEnqueueTaskNullTaskThrows() {
     UUID randomId = UUID.randomUUID();
-    Assertions.assertThrows(IllegalArgumentException.class, () -> this.queueService.enqueueTask(randomId, (Task)null));
+    Assertions.assertThrows(
+          IllegalArgumentException.class,
+          () -> this.queueService.enqueueTask(randomId, (Task) null)
+    );
   }
 
   @Test
   void testEnqueueTaskNonexistentQueueThrows() {
     UUID randomId = UUID.randomUUID();
     Task task = new Task("p", 1);
-    Assertions.assertThrows(IllegalStateException.class, () -> this.queueService.enqueueTask(randomId, task));
+    Assertions.assertThrows(
+          IllegalStateException.class,
+          () -> this.queueService.enqueueTask(randomId, task)
+    );
   }
 
   @Test
   void testDequeueTaskNullQueueIdThrows() {
-    Assertions.assertThrows(IllegalArgumentException.class, () -> this.queueService.dequeueTask((UUID)null));
+    Assertions.assertThrows(
+          IllegalArgumentException.class,
+          () -> this.queueService.dequeueTask((UUID) null)
+    );
   }
 
   @Test
   void testDequeueTaskNonexistentQueueThrows() {
     UUID randomId = UUID.randomUUID();
-    Assertions.assertThrows(IllegalStateException.class, () -> this.queueService.dequeueTask(randomId));
+    Assertions.assertThrows(
+          IllegalStateException.class,
+          () -> this.queueService.dequeueTask(randomId)
+    );
   }
 
   @Test
   void testSubmitResultNullQueueIdThrows() {
-    Result result = new Result(UUID.randomUUID(), "ok", ResultStatus.SUCCESS);
-    Assertions.assertThrows(IllegalArgumentException.class, () -> this.queueService.submitResult((UUID)null, result));
+    Result result = new Result(
+          UUID.randomUUID(),
+          "ok",
+          ResultStatus.SUCCESS
+    );
+    Assertions.assertThrows(
+          IllegalArgumentException.class,
+          () -> this.queueService.submitResult((UUID) null, result)
+    );
   }
 
   @Test
   void testSubmitResultNullResultThrows() {
     UUID randomId = UUID.randomUUID();
-    Assertions.assertThrows(IllegalArgumentException.class, () -> this.queueService.submitResult(randomId, (Result)null));
+    Assertions.assertThrows(
+          IllegalArgumentException.class,
+          () -> this.queueService.submitResult(randomId, (Result) null)
+    );
   }
 
   @Test
   void testSubmitResultNonexistentQueueThrows() {
     UUID randomId = UUID.randomUUID();
-    Result result = new Result(UUID.randomUUID(), "ok", ResultStatus.SUCCESS);
-    Assertions.assertThrows(IllegalStateException.class, () -> this.queueService.submitResult(randomId, result));
+    Result result = new Result(
+          UUID.randomUUID(),
+          "ok",
+          ResultStatus.SUCCESS
+    );
+    Assertions.assertThrows(
+          IllegalStateException.class,
+          () -> this.queueService.submitResult(randomId, result)
+    );
   }
 
   @Test
   void testGetResultNullQueueIdThrows() {
-    Assertions.assertThrows(IllegalArgumentException.class, () -> this.queueService.getResult((UUID)null, UUID.randomUUID()));
+    UUID taskId = UUID.randomUUID();
+    Assertions.assertThrows(
+          IllegalArgumentException.class,
+          () -> this.queueService.getResult((UUID) null, taskId)
+    );
   }
 
   @Test
   void testGetResultNullTaskIdThrows() {
     UUID randomId = UUID.randomUUID();
-    Assertions.assertThrows(IllegalArgumentException.class, () -> this.queueService.getResult(randomId, (UUID)null));
+    Assertions.assertThrows(
+          IllegalArgumentException.class,
+          () -> this.queueService.getResult(randomId, (UUID) null)
+    );
   }
 
   @Test
   void testGetResultNonexistentQueueThrows() {
     UUID randomId = UUID.randomUUID();
-    Assertions.assertThrows(IllegalStateException.class, () -> this.queueService.getResult(randomId, UUID.randomUUID()));
+    UUID taskId = UUID.randomUUID();
+    Assertions.assertThrows(
+          IllegalStateException.class,
+          () -> this.queueService.getResult(randomId, taskId)
+    );
   }
 
   @Test
