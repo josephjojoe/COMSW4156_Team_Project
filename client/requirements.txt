@@ -27,6 +27,7 @@ pdf2image==1.17.0
 # Read PDF metadata and page counts
 PyPDF2==3.0.1
 
+
 # Image processing and handling
 Pillow==10.4.0
 
