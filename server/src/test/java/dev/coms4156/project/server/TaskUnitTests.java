@@ -1,6 +1,7 @@
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -287,4 +288,93 @@ public class TaskUnitTests {
     task.setStatus(TaskStatus.FAILED);
     assertEquals(TaskStatus.FAILED, task.getStatus());
   }
+
+  /**
+   * Tests equals method when comparing a task to itself.
+   */
+  @Test
+  public void testEqualsWithSameReference() {
+    assertTrue(task.equals(task), 
+            "Task should be equal to itself");
+  }
+
+  /**
+   * Tests equals method with null object.
+   */
+  @Test
+  public void testEqualsWithNull() {
+    assertFalse(task.equals(null), 
+            "Task should not be equal to null");
+  }
+
+  /**
+   * Tests equals method with object of different type.
+   */
+  @Test
+  public void testEqualsWithDifferentType() {
+    String notATask = "This is not a task";
+    assertFalse(task.equals(notATask), 
+            "Task should not be equal to a String object");
+  }
+
+  /**
+   * Tests equals method with tasks having same priority.
+   */
+  @Test
+  public void testEqualsWithSamePriority() {
+    Task task1 = new Task("params1", 5);
+    Task task2 = new Task("params2", 5);
+    
+    assertTrue(task1.equals(task2), 
+            "Tasks with same priority should be equal");
+  }
+
+  /**
+   * Tests equals method with tasks having different priorities.
+   */
+  @Test
+  public void testEqualsWithDifferentPriority() {
+    Task task1 = new Task(testParams, 1);
+    Task task2 = new Task(testParams, 2);
+    
+    assertFalse(task1.equals(task2), 
+            "Tasks with different priorities should not be equal");
+  }
+
+  /**
+   * Tests that equals is symmetric.
+   */
+  @Test
+  public void testEqualsSymmetric() {
+    Task task1 = new Task("params1", 3);
+    Task task2 = new Task("params2", 3);
+    
+    assertTrue(task1.equals(task2) && task2.equals(task1), 
+            "Equals should be symmetric");
+  }
+
+  /**
+   * Tests hashCode consistency with equals.
+   */
+  @Test
+  public void testHashCodeConsistentWithEquals() {
+    Task task1 = new Task("params1", 7);
+    Task task2 = new Task("params2", 7);
+    
+    assertEquals(task1.hashCode(), task2.hashCode(), 
+            "Tasks that are equal should have the same hashCode");
+  }
+
+  /**
+   * Tests hashCode for tasks with different priorities.
+   */
+  @Test
+  public void testHashCodeWithDifferentPriorities() {
+    Task task1 = new Task(testParams, 1);
+    Task task2 = new Task(testParams, 2);
+    
+    assertNotEquals(task1.hashCode(), task2.hashCode(), 
+            "Tasks with different priorities should likely have different hashCodes");
+  }
+
 }
