@@ -148,7 +148,7 @@ public class QueueUnitTests {
     assertFalse(queue.hasPendingTasks());
   }
 
- /**
+  /**
   * Verifies that tasks are being dequeued in the right prioirity order.
   */
   @Test
