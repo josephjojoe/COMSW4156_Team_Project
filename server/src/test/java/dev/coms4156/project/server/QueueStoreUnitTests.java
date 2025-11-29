@@ -1,4 +1,4 @@
-package dev.coms4156.project.groupproject;
+package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import dev.coms4156.project.groupproject.model.Queue;
-import dev.coms4156.project.groupproject.model.QueueStore;
+import dev.coms4156.project.server.model.Queue;
+import dev.coms4156.project.server.model.QueueStore;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

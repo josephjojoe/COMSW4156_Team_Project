@@ -1,4 +1,4 @@
-package dev.coms4156.project.groupproject;
+package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -224,7 +224,7 @@ public class QueueControllerIntegrationTests {
   @Test
   void logging_each_endpoint_emits_info_log() throws Exception {
     Logger controllerLogger = (Logger) LoggerFactory
-          .getLogger("dev.coms4156.project.groupproject.controller.QueueController");
+          .getLogger("dev.coms4156.project.server.controller.QueueController");
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
     listAppender.start();
     controllerLogger.addAppender(listAppender);
