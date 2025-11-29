@@ -1,19 +1,57 @@
 # Python dependencies for PDF Quiz Generator
 #
-# Required packages:
-# - requests (HTTP client)
-# - pyyaml (config loading)
-# - pdf2image (PDF to images)
-# - PyPDF2 (PDF metadata)
-# - Pillow (image handling)
-# - openai (OpenAI API)
-# - OR anthropic (Anthropic API)
-# - pytest (testing - optional)
-# - responses (mocking - optional)
+# Installation:
+#   pip install -r requirements.txt
+#
+# System requirements:
+#   - poppler-utils (for pdf2image)
+#     macOS: brew install poppler
+#     Ubuntu/Debian: sudo apt-get install poppler-utils
+#     Windows: Download from https://github.com/oschwartz10612/poppler-windows/releases/
+
+# Core Dependencies
+# -----------------
+
+# HTTP client for Queue Service API communication
+requests==2.31.0
+
+# YAML parser for configuration file loading
+PyYAML==6.0.1
+
+# PDF Processing
+# --------------
+
+# Convert PDF pages to images (requires poppler-utils system package)
 pdf2image==1.17.0
+
+# Read PDF metadata and page counts
 PyPDF2==3.0.1
-Pillow==10.2.0
-pytest-cov
 
+# Image processing and handling
+Pillow==10.4.0
 
+# LLM API Clients
+# ---------------
 
+# Google Gemini API client (for LLM provider: "gemini")
+# FREE tier available with generous limits
+# Get API key: https://makersuite.google.com/app/apikey
+google-generativeai==0.3.2
+
+# Testing and Development
+# -----------------------
+
+# Testing framework
+pytest==8.0.0
+
+# Test coverage reporting
+pytest-cov==4.1.0
+
+# HTTP mocking library for testing API calls
+responses==0.25.0
+
+# Additional utilities
+# --------------------
+
+# For better date/time handling (optional but recommended)
+python-dateutil==2.8.2
