@@ -33,15 +33,20 @@ jobs:
       # ---------- STATIC ANALYSIS ----------
       - name: Install PMD
         run: |
-          wget https://github.com/pmd/pmd/releases/download/pmd_releases%2F7.7.0/pmd-dist-7.7.0-bin.zip -O pmd.zip
-          unzip pmd.zip
+          wget https://github.com/pmd/pmd/releases/download/pmd_releases%2F7.7.0/pmd-dist-7.7.0-bin.tar.gz -O pmd.tar.gz
+          tar -xzf pmd.tar.gz
           echo "$PWD/pmd-dist-7.7.0/bin" >> $GITHUB_PATH
-
       
       - name: Run PMD (Quickstart Ruleset)
         run: |
           pmd check -d server/src/main/java -R rulesets/java/quickstart.xml -f xml -r server/target/pmd-report.xml
       
+      - name: Upload PMD Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pmd-report
+          path: server/target/pmd-report.xml
+
 
       # ---------- UNIT TESTS + JACOCO ----------
       - name: Run Unit Tests with Jacoco
@@ -59,12 +64,7 @@ jobs:
         with:
           name: jacoco-report
           path: server/target/site/jacoco
-      
-      - name: Upload PMD Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: pmd-report
-          path: server/target/pmd-report.xml
+    
 
       - name: Upload Checkstyle Report
         uses: actions/upload-artifact@v4
