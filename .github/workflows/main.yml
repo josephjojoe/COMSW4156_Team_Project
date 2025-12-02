@@ -27,6 +27,9 @@ jobs:
       - name: Run Checkstyle
         run: mvn -B checkstyle:check --file server/pom.xml
 
+      - name: Generate Checkstyle Report
+        run: mvn -B checkstyle:checkstyle --file server/pom.xml
+
       # ---------- STATIC ANALYSIS ----------
       - name: Run PMD
         run: mvn -B pmd:check --file server/pom.xml
@@ -47,3 +50,9 @@ jobs:
         with:
           name: pmd-report
           path: server/target/pmd.xml
+          
+      - name: Upload Checkstyle Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: server/target/site/checkstyle.html
