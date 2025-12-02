@@ -31,8 +31,8 @@ jobs:
         run: mvn -B checkstyle:checkstyle --file server/pom.xml
 
       # ---------- STATIC ANALYSIS ----------
-      - name: Run PMD
-        run: mvn -B pmd:check --file server/pom.xml
+      - name: Generate PMD Report
+        run: mvn -B pmd:pmd --file server/pom.xml
 
       # ---------- UNIT TESTS + JACOCO ----------
       - name: Run Unit Tests with Jacoco
@@ -49,8 +49,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pmd-report
-          path: server/target/pmd.xml
-          
+          path: server/target/site/pmd.xml
+
       - name: Upload Checkstyle Report
         uses: actions/upload-artifact@v4
         with:
