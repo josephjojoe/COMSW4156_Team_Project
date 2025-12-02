@@ -415,11 +415,6 @@ public class QueueController {
     private boolean hasPendingTasks;
 
     /**
-     * Default constructor.
-     */
-    public QueueStatusResponse() {}
-
-    /**
      * Constructor with all fields.
      *
      * @param id the queue ID

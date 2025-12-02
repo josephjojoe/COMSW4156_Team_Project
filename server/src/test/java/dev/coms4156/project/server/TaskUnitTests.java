@@ -304,8 +304,7 @@ public class TaskUnitTests {
    */
   @Test
   public void testEqualsWithNull() {
-    assertFalse(task.equals(null), 
-            "Task should not be equal to null");
+    assertNotEquals(null, task, "Task should not be equal to null");
   }
 
   /**
