@@ -1,6 +1,8 @@
 package dev.coms4156.project.server.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -26,6 +28,19 @@ public class Queue {
    */
   public Queue(String name) {
     this.id = UUID.randomUUID();
+    this.name = name;
+    this.tasks = new PriorityBlockingQueue<>();
+    this.results = new HashMap<>();
+  }
+
+  /**
+   * Constructs a {@code Queue} with a specific UUID (used for loading from snapshots).
+   *
+   * @param name the descriptive name of this queue
+   * @param id   the UUID to use for this queue
+   */
+  public Queue(String name, UUID id) {
+    this.id = id;
     this.name = name;
     this.tasks = new PriorityBlockingQueue<>();
     this.results = new HashMap<>();
@@ -130,5 +145,27 @@ public class Queue {
   */
   public int getResultCount() {
     return results.size();
+  }
+
+  /**
+   * Returns a list of all pending tasks in the queue.
+   * Used for snapshotting. The returned list is a copy to avoid
+   * concurrent modification issues.
+   *
+   * @return list of all tasks currently in the queue
+   */
+  public synchronized List<Task> getAllTasks() {
+    return new ArrayList<>(tasks);
+  }
+
+  /**
+   * Returns a list of all stored results.
+   * Used for snapshotting. The returned list is a copy to avoid
+   * concurrent modification issues.
+   *
+   * @return list of all results
+   */
+  public synchronized List<Result> getAllResults() {
+    return new ArrayList<>(results.values());
   }
 }

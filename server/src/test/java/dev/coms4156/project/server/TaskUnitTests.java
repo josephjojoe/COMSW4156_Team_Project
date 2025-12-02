@@ -312,8 +312,8 @@ public class TaskUnitTests {
    */
   @Test
   public void testEqualsWithDifferentType() {
-    String notATask = "This is not a task";
-    assertFalse(task.equals(notATask), 
+    String notAtask = "This is not a task";
+    assertFalse(task.equals(notAtask), 
             "Task should not be equal to a String object");
   }
 

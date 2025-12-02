@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -156,6 +157,30 @@ public class QueueController {
     );
     
     return ResponseEntity.ok(status);
+  }
+
+  /**
+   * Administrative endpoint to clear all queues from memory and persistence.
+   * This is useful for testing and cleanup. Use with caution in production.
+   *
+   * <p><b>WARNING:</b> This operation is destructive and cannot be undone.
+   * All queues, tasks, and results will be permanently deleted.
+   *
+   * @return OK response if successful
+   */
+  @DeleteMapping("/admin/clear")
+  public ResponseEntity<ClearAllResponse> clearAllQueues() {
+    log.warn("clearAllQueues - Administrative clear requested");
+    int queueCount = queueService.getAllQueueCount();
+    queueService.clearAll();
+    log.info("clearAllQueues - Cleared {} queues", queueCount);
+    
+    ClearAllResponse response = new ClearAllResponse(
+        "All queues cleared successfully",
+        queueCount
+    );
+    
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -315,6 +340,66 @@ public class QueueController {
      */
     public void setStatus(Result.ResultStatus status) {
       this.status = status;
+    }
+  }
+
+  /**
+   * Response DTO for clear all operation.
+   */
+  public static class ClearAllResponse {
+    private String message;
+    private int queuesCleared;
+
+    /**
+     * Default constructor.
+     */
+    public ClearAllResponse() {}
+
+    /**
+     * Constructor with fields.
+     *
+     * @param message the response message
+     * @param queuesCleared the number of queues that were cleared
+     */
+    public ClearAllResponse(String message, int queuesCleared) {
+      this.message = message;
+      this.queuesCleared = queuesCleared;
+    }
+
+    /**
+     * Gets the response message.
+     *
+     * @return the message
+     */
+    public String getMessage() {
+      return message;
+    }
+
+    /**
+     * Sets the response message.
+     *
+     * @param message the message
+     */
+    public void setMessage(String message) {
+      this.message = message;
+    }
+
+    /**
+     * Gets the number of queues cleared.
+     *
+     * @return the number of queues cleared
+     */
+    public int getQueuesCleared() {
+      return queuesCleared;
+    }
+
+    /**
+     * Sets the number of queues cleared.
+     *
+     * @param queuesCleared the number of queues cleared
+     */
+    public void setQueuesCleared(int queuesCleared) {
+      this.queuesCleared = queuesCleared;
     }
   }
 
