@@ -2,7 +2,6 @@ package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -148,7 +147,7 @@ public class QueueUnitTests {
     assertFalse(queue.hasPendingTasks());
   }
 
- /**
+  /**
   * Verifies that tasks are being dequeued in the right prioirity order.
   */
   @Test

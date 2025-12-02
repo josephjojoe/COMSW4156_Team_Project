@@ -37,7 +37,7 @@ public class QueueControllerIntegrationTests {
    * submit result, and retrieve it.
    */
   @Test
-  void fullFlow_create_enqueue_dequeue_submit_getResult() throws Exception {
+  void fullFlowCreateEnqueueDequeueSubmitGetResult() throws Exception {
     // Create queue
     String createQueuePayload = "{\"name\":\"Q1\"}";
     MvcResult createRes =
@@ -101,7 +101,7 @@ public class QueueControllerIntegrationTests {
 
   /** Verifies that dequeuing from an empty queue returns 204 No Content. */
   @Test
-  void dequeue_emptyQueue_returnsNoContent() throws Exception {
+  void dequeueEmptyQueueReturnsNoContent() throws Exception {
     // Create queue
     String createQueuePayload = "{\"name\":\"Q2\"}";
     MvcResult createRes =
@@ -124,7 +124,7 @@ public class QueueControllerIntegrationTests {
 
   /** Checks that creating a queue with a blank name returns 400 Bad Request. */
   @Test
-  void createQueue_blankName_returnsBadRequest() throws Exception {
+  void createQueueBlankNameReturnsBadRequest() throws Exception {
     String payload = "{\"name\":\"   \"}";
     mockMvc
           .perform(post("/queue").contentType(MediaType.APPLICATION_JSON).content(payload))
@@ -133,7 +133,7 @@ public class QueueControllerIntegrationTests {
 
   /** Confirms that enqueuing to a nonexistent queue returns 404 Not Found. */
   @Test
-  void enqueueTask_nonexistentQueue_returnsNotFound() throws Exception {
+  void enqueueTaskNonexistentQueueReturnsNotFound() throws Exception {
     UUID randomId = UUID.randomUUID();
     String payload = "{\"params\":\"p\",\"priority\":1}";
     mockMvc
@@ -146,7 +146,7 @@ public class QueueControllerIntegrationTests {
 
   /** Tests that a malformed UUID in the enqueue path returns 400 Bad Request. */
   @Test
-  void enqueueTask_malformedUuid_returnsBadRequest() throws Exception {
+  void enqueueTaskMalformedUuidReturnsBadRequest() throws Exception {
     String payload = "{\"params\":\"p\",\"priority\":1}";
     mockMvc
           .perform(post("/queue/not-a-uuid/task")
@@ -156,20 +156,20 @@ public class QueueControllerIntegrationTests {
 
   /** Verifies that dequeuing from a nonexistent queue returns 404 Not Found. */
   @Test
-  void dequeueTask_nonexistentQueue_returnsNotFound() throws Exception {
+  void dequeueTaskNonexistentQueueReturnsNotFound() throws Exception {
     UUID randomId = UUID.randomUUID();
     mockMvc.perform(get("/queue/" + randomId + "/task")).andExpect(status().isNotFound());
   }
 
   /** Checks that a malformed UUID in the dequeue path returns 400 Bad Request. */
   @Test
-  void dequeueTask_malformedUuid_returnsBadRequest() throws Exception {
+  void dequeueTaskMalformedUuidReturnsBadRequest() throws Exception {
     mockMvc.perform(get("/queue/not-a-uuid/task")).andExpect(status().isBadRequest());
   }
 
   /** Confirms that submitting a result to a nonexistent queue returns 404 Not Found. */
   @Test
-  void submitResult_nonexistentQueue_returnsNotFound() throws Exception {
+  void submitResultNonexistentQueueReturnsNotFound() throws Exception {
     UUID taskId = UUID.randomUUID();
     String payload =
           String.format("{\"taskId\":\"%s\",\"output\":\"ok\",\"status\":\"SUCCESS\"}", taskId);
@@ -183,7 +183,7 @@ public class QueueControllerIntegrationTests {
 
   /** Tests that an invalid status enum value returns 400 Bad Request. */
   @Test
-  void submitResult_invalidEnum_returnsBadRequest() throws Exception {
+  void submitResultInvalidEnumReturnsBadRequest() throws Exception {
     // First create a queue to avoid 404 masking 400
     String createQueuePayload = "{\"name\":\"Q3\"}";
     MvcResult createRes =
@@ -207,7 +207,7 @@ public class QueueControllerIntegrationTests {
 
   /** Verifies that fetching a result from a nonexistent queue returns 404 Not Found. */
   @Test
-  void getResult_nonexistentQueue_returnsNotFound() throws Exception {
+  void getResultNonexistentQueueReturnsNotFound() throws Exception {
     mockMvc
           .perform(get("/queue/" + UUID.randomUUID() + "/result/" + UUID.randomUUID()))
           .andExpect(status().isNotFound());
@@ -215,14 +215,14 @@ public class QueueControllerIntegrationTests {
 
   /** Checks that malformed UUIDs in the get result path return 400 Bad Request. */
   @Test
-  void getResult_malformedUuid_returnsBadRequest() throws Exception {
+  void getResultMalformedUuidReturnsBadRequest() throws Exception {
     mockMvc.perform(get("/queue/not-a-uuid/result/also-bad"))
           .andExpect(status().isBadRequest());
   }
 
   /** Ensures that each endpoint logs an INFO-level message when called. */
   @Test
-  void logging_each_endpoint_emits_info_log() throws Exception {
+  void loggingEachEndpointEmitsInfoLog() throws Exception {
     Logger controllerLogger = (Logger) LoggerFactory
           .getLogger("dev.coms4156.project.server.controller.QueueController");
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
@@ -281,7 +281,7 @@ public class QueueControllerIntegrationTests {
 
   /** Tests that multiple queues remain isolated when operations are interleaved. */
   @Test
-  void multiClientIsolation_interleavedCalls_doNotInterfere() throws Exception {
+  void multiClientIsolationInterleavedCallsDoNotInterfere() throws Exception {
     // Create two queues
     UUID q1 = UUID.fromString(
           objectMapper.readTree(

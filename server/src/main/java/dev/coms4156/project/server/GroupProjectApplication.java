@@ -7,7 +7,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * This class contains the startup of the application.
  */
 @SpringBootApplication
-public class GroupProjectApplication {
+public final class GroupProjectApplication {
+
+  private GroupProjectApplication() {}
+  
   public static void main(String[] args) {
     SpringApplication.run(GroupProjectApplication.class, args);
   }

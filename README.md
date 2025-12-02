@@ -180,40 +180,69 @@ curl -s "$BASE/queue/$QUEUE_ID/result/$TASK_ID" | jq .
 ```
 
 do brew install jq if you do not have jq
+# Continuous Integration
+___
+Our project uses a GitHub Actions CI workflow located at .github/workflows/main.yml. The CI loop runs automatically on every push and pull request to the main branch. It performs all required quality checks specified in the course rubric.
+
+1. Static analysis  
+   The CI workflow runs PMD on the entire service codebase using the maven pmd plugin. PMD initially detected multiple issues including missing log guards, unnecessary constructors, unused imports, and design rule violations. We fixed all reported issues. Before and after PMD output files are included in reports/static-analysis/before and reports/static-analysis/after.
+
+2. Style checking  
+   The CI workflow runs Checkstyle using the maven checkstyle plugin, enforcing Google Java Style across the entire service including tests. All Checkstyle violations detected during development were fixed and CI now passes with no style errors.
+
+3. Unit testing  
+   The CI workflow runs all unit tests with mvn test. Unit tests cover valid and invalid equivalence partitions and boundary cases for each major unit.
+
+4. API testing  
+   The CI workflow runs our API tests which exercise all service endpoints with both valid and invalid inputs.
+
+5. Integration testing  
+   The CI workflow runs integration tests which cover interactions between multiple classes and the shared data among them.
+
+6. Coverage  
+   The CI workflow runs the Jacoco plugin during mvn verify to generate branch coverage reports. The most recent coverage report is included in the metrics directory.
+
+Together these automated steps ensure that every pull request is checked for correct functionality, style consistency, thorough test coverage, and static analysis cleanliness before merging into the main branch.
 
 # Code Style (Checkstyle)
 ___
 
-We use Checkstyle for code style compliance (Google style). The Maven plugin is configured in `GroupProject/pom.xml`.
+We use Checkstyle for code style compliance (Google style). The Maven plugin is configured in `server/pom.xml`.
 
 - Run style checks:
   ```
-  cd GroupProject
+  cd server
   mvn checkstyle:check
   ```
 - Generate a style report:
   ```
-  cd GroupProject
+  cd server
   mvn checkstyle:checkstyle
   open target/site/checkstyle.html
   ```
 
-Note: The plugin references `google_checks.xml`. Ensure this file is present in `GroupProject/` or update the plugin configuration accordingly. If missing, the check will fail.
+Note: The plugin references `google_checks.xml`. Ensure this file is present in `server/` or update the plugin configuration accordingly. If missing, the check will fail.
 
 # Static Analysis
 ___
+We use PMD as our static abalysis bug finder.
+- Run static analysis bug finder
+  pmd check -d src -R rulesets/java/quickstart.xml -f xml
 
-PMD is planned but not yet configured in `pom.xml`.
+Some before/after reports from our static analyzer can be located in reports/static-analysis/before/ and reports/static-analysis/after/
 
 # Links
 ___
 
 - Class Diagram: https://lucid.app/lucidchart/8a4ba69a-6f81-4bf6-a6c1-08ea5ab49e14/edit?beaconFlowId=781D649DE0B7F69C&invitationId=inv_2c0e7564-fc77-4029-bdf8-8b5c33887816&page=0_0#
-- Project Management: GitHub Issues/Projects (or Linear) — to be linked
+
+- Project Management(Linear): https://linear.app/runtime-terrors/team/RUN/active 
+
 # Style Checking Report
 Our codebase passes all Checkstyle checks with **zero violations or warnings**.
 
-There's a copy of the Checkstyle + PMD result files in the /metrics directory.
+There's a copy our most recent Checkstyle + PMD result files in the /metrics directory.
+
 # Branch Coverage Report
 ## **Current Coverage Status (Iteration 1)**
 
