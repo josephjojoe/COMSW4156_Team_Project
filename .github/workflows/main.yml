@@ -30,15 +30,26 @@ jobs:
       - name: Generate Checkstyle XML Report
         run: mvn -B checkstyle:checkstyle -Dcheckstyle.output.format=xml -Dcheckstyle.output.file=server/target/checkstyle-report.xml --file server/pom.xml
 
-      # ---------- STATIC ANALYSIS ----------
-      - name: Run PMD (Maven plugin)
-        run: mvn -B pmd:pmd --file server/pom.xml
+      - name: Install PMD 7
+        run: |
+          wget https://github.com/pmd/pmd/releases/download/pmd_releases_7.17.0/pmd-dist-7.17.0-bin.tar.gz -O pmd.tar.gz
+          tar -xzf pmd.tar.gz
+          echo "$PWD/pmd-dist-7.17.0/bin" >> $GITHUB_PATH
+      
+      - name: Run PMD 7 (same as local)
+        run: |
+          pmd check \
+            -d server/src/main/java \
+            -R rulesets/java/quickstart.xml \
+            -f xml \
+            -r server/target/pmd-report.xml
       
       - name: Upload PMD Report
         uses: actions/upload-artifact@v4
         with:
           name: pmd-report
-          path: server/target/pmd.xml
+          path: server/target/pmd-report.xml
+
 
 
 
