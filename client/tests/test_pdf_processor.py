@@ -1,5 +1,5 @@
 from pathlib import Path
-from PyPDF2 import PdfWriter
+from pypdf import PdfWriter
 from src.pdf_processor import PDFProcessor
 
 def test_validate_pdf_true(tmp_path):
