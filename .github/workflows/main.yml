@@ -28,10 +28,12 @@ jobs:
         run: mvn -B checkstyle:check --file server/pom.xml
       
       - name: Generate Checkstyle XML Report
-        run: mvn -B checkstyle:checkstyle \
-              -Dcheckstyle.output.format=xml \
-              -Dcheckstyle.output.file=target/checkstyle-report.xml \
-              --file server/pom.xml
+        run: |
+          mvn -B checkstyle:checkstyle \
+            -Dcheckstyle.output.format=xml \
+            -Dcheckstyle.output.file=target/checkstyle-report.xml \
+            --file server/pom.xml
+
 
       - name: Upload Checkstyle Report
         uses: actions/upload-artifact@v4
