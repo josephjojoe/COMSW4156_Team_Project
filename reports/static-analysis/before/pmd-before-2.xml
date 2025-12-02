@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 https://pmd.github.io/schema/report_2_0_0.xsd" version="7.17.0" timestamp="2025-12-02T17:59:28.617">
+<file name="src/main/java/dev/coms4156/project/server/controller/QueueController.java">
+<violation beginline="335" endline="335" begincolumn="12" endcolumn="31" rule="UncommentedEmptyConstructor" ruleset="Documentation" package="dev.coms4156.project.server.controller" class="QueueStatusResponse" method="QueueStatusResponse" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_documentation.html#uncommentedemptyconstructor" priority="3">
+Document empty constructor
+</violation>
+</file>
+<file name="src/test/java/dev/coms4156/project/server/QueueControllerIntegrationTests.java">
+<violation beginline="353" endline="353" begincolumn="8" endcolumn="51" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="getQueueStatus_emptyQueue_returnsZeroCounts" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'getQueueStatus_emptyQueue_returnsZeroCounts' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="379" endline="379" begincolumn="8" endcolumn="55" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="getQueueStatus_nonexistentQueue_returnsNotFound" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'getQueueStatus_nonexistentQueue_returnsNotFound' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="387" endline="387" begincolumn="8" endcolumn="57" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="getQueueStatus_afterEnqueue_countsUpdateCorrectly" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'getQueueStatus_afterEnqueue_countsUpdateCorrectly' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="421" endline="421" begincolumn="8" endcolumn="66" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="getQueueStatus_afterDequeueAndSubmit_countsUpdateCorrectly" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'getQueueStatus_afterDequeueAndSubmit_countsUpdateCorrectly' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="505" endline="505" begincolumn="8" endcolumn="54" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="getQueueStatus_malformedUuid_returnsBadRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'getQueueStatus_malformedUuid_returnsBadRequest' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="515" endline="515" begincolumn="8" endcolumn="58" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="getQueueStatus_aggregatorUseCase_detectsCompletion" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'getQueueStatus_aggregatorUseCase_detectsCompletion' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+</file>
+<file name="src/test/java/dev/coms4156/project/server/QueueServiceUnitTests.java">
+<violation beginline="4" endline="4" begincolumn="1" endcolumn="60" rule="UnnecessaryImport" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueServiceUnitTests" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#unnecessaryimport" priority="4">
+Unused static import 'org.junit.jupiter.api.Assertions.assertFalse'
+</violation>
+<violation beginline="6" endline="6" begincolumn="1" endcolumn="59" rule="UnnecessaryImport" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueServiceUnitTests" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#unnecessaryimport" priority="4">
+Unused static import 'org.junit.jupiter.api.Assertions.assertNull'
+</violation>
+</file>
+<file name="src/test/java/dev/coms4156/project/server/TaskUnitTests.java">
+<violation beginline="306" endline="306" begincolumn="17" endcolumn="34" rule="EqualsNull" ruleset="Error Prone" package="dev.coms4156.project.server" class="TaskUnitTests" method="testEqualsWithNull" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_errorprone.html#equalsnull" priority="1">
+Avoid using equals() to compare against null
+</violation>
+</file>
+</pmd>
