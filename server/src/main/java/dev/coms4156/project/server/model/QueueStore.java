@@ -219,18 +219,21 @@ public final class QueueStore {
 
       // Atomic rename (crash-safe)
       if (actualFile.exists() && !actualFile.delete()) {
-        log.warn("Failed to delete old snapshot file");
+        throw new IOException(
+            "Failed to delete old snapshot file: " + actualFile.getAbsolutePath());
       }
       if (!tempFile.renameTo(actualFile)) {
-        log.error("Failed to rename temp snapshot file");
-      } else {
-        log.debug("Snapshot saved successfully ({} queues, {} total tasks)",
-            queueSnapshots.size(),
-            queueSnapshots.stream().mapToInt(q -> q.getTasks().size()).sum());
+        throw new IOException(
+            "Failed to rename temp snapshot file to: " + actualFile.getAbsolutePath());
       }
+
+      log.debug("Snapshot saved successfully ({} queues, {} total tasks)",
+          queueSnapshots.size(),
+          queueSnapshots.stream().mapToInt(q -> q.getTasks().size()).sum());
 
     } catch (IOException e) {
       log.error("Failed to save snapshot", e);
+      throw new RuntimeException("Snapshot save failed", e);
     }
   }
 
@@ -266,9 +269,9 @@ public final class QueueStore {
         // Restore tasks
         if (queueSnap.getTasks() != null) {
           for (TaskSnapshot taskSnap : queueSnap.getTasks()) {
-            Task task = new Task(taskSnap.getParams(), taskSnap.getPriority());
-            // Use reflection or add a setter to restore task ID and status
-            // For simplicity, we'll create new tasks with original params
+            UUID taskId = UUID.fromString(taskSnap.getId());
+            Task.TaskStatus status = Task.TaskStatus.valueOf(taskSnap.getStatus());
+            Task task = new Task(taskId, taskSnap.getParams(), taskSnap.getPriority(), status);
             queue.enqueue(task);
             totalTasks++;
           }

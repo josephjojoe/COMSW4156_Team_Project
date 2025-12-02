@@ -39,6 +39,22 @@ public class Task implements Comparable<Task> {
     this.status = TaskStatus.PENDING;
   }
 
+  /**
+   * Constructs a {@code Task} with a specific ID and status.
+   * Used for restoring tasks from persistence snapshots.
+   *
+   * @param id the task's UUID (must not be null)
+   * @param params the task parameters as a JSON string or plain text
+   * @param priority the priority level (lower values = higher priority)
+   * @param status the task status
+   */
+  public Task(UUID id, String params, int priority, TaskStatus status) {
+    this.id = id;
+    this.params = params;
+    this.priority = priority;
+    this.status = status;
+  }
+
 
   /**
    * Returns the unique task identifier.
