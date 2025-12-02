@@ -33,9 +33,10 @@ jobs:
       # ---------- STATIC ANALYSIS ----------
       - name: Install PMD
         run: |
-          wget https://github.com/pmd/pmd/releases/download/pmd_releases%2F7.7.0/pmd-dist-7.7.0-bin.tar.gz -O pmd.tar.gz
+          wget https://github.com/pmd/pmd/releases/download/pmd_releases_7.7.0/pmd-dist-7.7.0-bin.tar.gz -O pmd.tar.gz
           tar -xzf pmd.tar.gz
           echo "$PWD/pmd-dist-7.7.0/bin" >> $GITHUB_PATH
+
       
       - name: Run PMD (Quickstart Ruleset)
         run: |
