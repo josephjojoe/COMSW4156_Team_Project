@@ -2,7 +2,7 @@ import uuid
 from pathlib import Path
 from typing import List
 from pdf2image import convert_from_path
-from PyPDF2 import PdfReader
+from pypdf import PdfReader 
 from PIL import Image
 
 class PDFProcessor:
