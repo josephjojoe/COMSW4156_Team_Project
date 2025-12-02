@@ -7,9 +7,9 @@ import dev.coms4156.project.server.model.snapshot.ResultSnapshot;
 import dev.coms4156.project.server.model.snapshot.SnapshotData;
 import dev.coms4156.project.server.model.snapshot.TaskSnapshot;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -166,6 +166,7 @@ public final class QueueStore {
    * Saves the current state of all queues to a snapshot file.
    * Uses atomic file write (write to temp, then rename) to prevent corruption.
    */
+  @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
   public synchronized void saveSnapshot() {
     try {
       final File tempFile = new File(SNAPSHOT_TEMP_FILE);
@@ -212,7 +213,7 @@ public final class QueueStore {
       snapshot.setQueues(queueSnapshots);
 
       // Write to temp file
-      try (FileWriter writer = new FileWriter(tempFile)) {
+      try (var writer = Files.newBufferedWriter(tempFile.toPath(), StandardCharsets.UTF_8)) {
         gson.toJson(snapshot, writer);
       }
 
@@ -237,6 +238,7 @@ public final class QueueStore {
    * Loads queue state from the snapshot file if it exists.
    * Called automatically on startup.
    */
+  @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
   private synchronized void loadSnapshot() {
     File snapshotFile = new File(SNAPSHOT_FILE);
     
@@ -245,7 +247,7 @@ public final class QueueStore {
       return;
     }
 
-    try (FileReader reader = new FileReader(snapshotFile)) {
+    try (var reader = Files.newBufferedReader(snapshotFile.toPath(), StandardCharsets.UTF_8)) {
       SnapshotData snapshot = gson.fromJson(reader, SnapshotData.class);
 
       if (snapshot == null || snapshot.getQueues() == null) {
