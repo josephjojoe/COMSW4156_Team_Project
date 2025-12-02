@@ -113,7 +113,7 @@ public class Queue {
    * @param taskId the unique identifier of the task
    * @return the result if present, or {@code null} otherwise
    */
-  public Result getResult(UUID taskId) {
+  public synchronized Result getResult(UUID taskId) {
     return results.get(taskId);
   }
 

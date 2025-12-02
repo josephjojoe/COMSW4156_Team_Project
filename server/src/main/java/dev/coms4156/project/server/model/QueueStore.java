@@ -176,14 +176,22 @@ public final class QueueStore {
       SnapshotData snapshot = new SnapshotData();
       List<QueueSnapshot> queueSnapshots = new ArrayList<>();
 
-      for (Queue queue : queues.values()) {
+      // Take a defensive copy of the queues to avoid concurrent modification
+      List<Queue> queuesCopy = new ArrayList<>(queues.values());
+
+      for (Queue queue : queuesCopy) {
         QueueSnapshot queueSnap = new QueueSnapshot();
         queueSnap.setId(queue.getId().toString());
         queueSnap.setName(queue.getName());
 
-        // Snapshot all tasks
+        // Get synchronized snapshots of tasks and results from the queue
+        // getAllTasks() and getAllResults() are synchronized on the Queue object
+        List<Task> tasksCopy = queue.getAllTasks();
+        List<Result> resultsCopy = queue.getAllResults();
+
+        // Snapshot all tasks from the copy
         List<TaskSnapshot> taskSnapshots = new ArrayList<>();
-        for (Task task : queue.getAllTasks()) {
+        for (Task task : tasksCopy) {
           TaskSnapshot taskSnap = new TaskSnapshot(
               task.getId().toString(),
               task.getParams(),
@@ -194,9 +202,9 @@ public final class QueueStore {
         }
         queueSnap.setTasks(taskSnapshots);
 
-        // Snapshot all results
+        // Snapshot all results from the copy
         List<ResultSnapshot> resultSnapshots = new ArrayList<>();
-        for (Result result : queue.getAllResults()) {
+        for (Result result : resultsCopy) {
           ResultSnapshot resultSnap = new ResultSnapshot(
               result.getTaskId().toString(),
               result.getOutput(),
