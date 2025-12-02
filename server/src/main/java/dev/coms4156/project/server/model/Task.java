@@ -168,8 +168,10 @@ public class Task implements Comparable<Task> {
   }
 
   /**
-   * Equality is defined solely by priority so that compareTo(a,b)==0 implies a.equals(b).
-   * NOTE: With this design, two tasks with the same priority are considered equal.
+   * Two tasks are equal if and only if they have the same unique ID.
+   * Note: This means equals() is not consistent with compareTo(), which is
+   * acceptable since PriorityBlockingQueue does not require consistency
+   * between these methods.
    */
   @Override
   public boolean equals(Object obj) {
@@ -180,12 +182,12 @@ public class Task implements Comparable<Task> {
       return false;
     }
     Task other = (Task) obj;
-    return this.priority == other.priority;
+    return this.id.equals(other.id);
   }
 
   @Override
   public int hashCode() {
-    return Integer.hashCode(priority);
+    return id.hashCode();
   }
 
 
