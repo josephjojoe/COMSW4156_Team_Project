@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 https://pmd.github.io/schema/report_2_0_0.xsd" version="7.17.0" timestamp="2025-12-01T23:27:32.287">
+<file name="src/main/java/dev/coms4156/project/server/GroupProjectApplication.java">
+<violation beginline="10" endline="10" begincolumn="8" endcolumn="13" rule="UseUtilityClass" ruleset="Design" package="dev.coms4156.project.server" class="GroupProjectApplication" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_design.html#useutilityclass" priority="3">
+All methods are static. Consider adding a private no-args constructor to prevent instantiation.
+</violation>
+</file>
+<file name="src/main/java/dev/coms4156/project/server/controller/QueueController.java">
+<violation beginline="49" endline="49" begincolumn="5" endcolumn="56" rule="GuardLogStatement" ruleset="Best Practices" package="dev.coms4156.project.server.controller" class="QueueController" method="createQueue" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_bestpractices.html#guardlogstatement" priority="2">
+Logger calls should be surrounded by log level guards.
+</violation>
+<violation beginline="65" endline="65" begincolumn="5" endcolumn="84" rule="GuardLogStatement" ruleset="Best Practices" package="dev.coms4156.project.server.controller" class="QueueController" method="enqueueTask" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_bestpractices.html#guardlogstatement" priority="2">
+Logger calls should be surrounded by log level guards.
+</violation>
+<violation beginline="98" endline="99" begincolumn="5" endcolumn="62" rule="GuardLogStatement" ruleset="Best Practices" package="dev.coms4156.project.server.controller" class="QueueController" method="submitResult" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_bestpractices.html#guardlogstatement" priority="2">
+Logger calls should be surrounded by log level guards.
+</violation>
+<violation beginline="132" endline="132" begincolumn="5" endcolumn="54" rule="GuardLogStatement" ruleset="Best Practices" package="dev.coms4156.project.server.controller" class="QueueController" method="handleBadRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_bestpractices.html#guardlogstatement" priority="2">
+Logger calls should be surrounded by log level guards.
+</violation>
+<violation beginline="144" endline="144" begincolumn="5" endcolumn="52" rule="GuardLogStatement" ruleset="Best Practices" package="dev.coms4156.project.server.controller" class="QueueController" method="handleNotFound" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_bestpractices.html#guardlogstatement" priority="2">
+Logger calls should be surrounded by log level guards.
+</violation>
+<violation beginline="157" endline="157" begincolumn="12" endcolumn="30" rule="UnnecessaryConstructor" ruleset="Code Style" package="dev.coms4156.project.server.controller" class="CreateQueueRequest" method="CreateQueueRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#unnecessaryconstructor" priority="3">
+Avoid unnecessary constructors - the compiler will generate these for you
+</violation>
+<violation beginline="157" endline="157" begincolumn="12" endcolumn="30" rule="UncommentedEmptyConstructor" ruleset="Documentation" package="dev.coms4156.project.server.controller" class="CreateQueueRequest" method="CreateQueueRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_documentation.html#uncommentedemptyconstructor" priority="3">
+Document empty constructor
+</violation>
+<violation beginline="188" endline="188" begincolumn="12" endcolumn="30" rule="UnnecessaryConstructor" ruleset="Code Style" package="dev.coms4156.project.server.controller" class="EnqueueTaskRequest" method="EnqueueTaskRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#unnecessaryconstructor" priority="3">
+Avoid unnecessary constructors - the compiler will generate these for you
+</violation>
+<violation beginline="188" endline="188" begincolumn="12" endcolumn="30" rule="UncommentedEmptyConstructor" ruleset="Documentation" package="dev.coms4156.project.server.controller" class="EnqueueTaskRequest" method="EnqueueTaskRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_documentation.html#uncommentedemptyconstructor" priority="3">
+Document empty constructor
+</violation>
+<violation beginline="238" endline="238" begincolumn="12" endcolumn="31" rule="UnnecessaryConstructor" ruleset="Code Style" package="dev.coms4156.project.server.controller" class="SubmitResultRequest" method="SubmitResultRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#unnecessaryconstructor" priority="3">
+Avoid unnecessary constructors - the compiler will generate these for you
+</violation>
+<violation beginline="238" endline="238" begincolumn="12" endcolumn="31" rule="UncommentedEmptyConstructor" ruleset="Documentation" package="dev.coms4156.project.server.controller" class="SubmitResultRequest" method="SubmitResultRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_documentation.html#uncommentedemptyconstructor" priority="3">
+Document empty constructor
+</violation>
+</file>
+<file name="src/test/java/dev/coms4156/project/server/QueueControllerIntegrationTests.java">
+<violation beginline="40" endline="40" begincolumn="8" endcolumn="56" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="fullFlow_create_enqueue_dequeue_submit_getResult" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'fullFlow_create_enqueue_dequeue_submit_getResult' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="104" endline="104" begincolumn="8" endcolumn="43" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="dequeue_emptyQueue_returnsNoContent" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'dequeue_emptyQueue_returnsNoContent' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="127" endline="127" begincolumn="8" endcolumn="47" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="createQueue_blankName_returnsBadRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'createQueue_blankName_returnsBadRequest' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="136" endline="136" begincolumn="8" endcolumn="52" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="enqueueTask_nonexistentQueue_returnsNotFound" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'enqueueTask_nonexistentQueue_returnsNotFound' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="149" endline="149" begincolumn="8" endcolumn="51" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="enqueueTask_malformedUuid_returnsBadRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'enqueueTask_malformedUuid_returnsBadRequest' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="159" endline="159" begincolumn="8" endcolumn="52" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="dequeueTask_nonexistentQueue_returnsNotFound" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'dequeueTask_nonexistentQueue_returnsNotFound' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="166" endline="166" begincolumn="8" endcolumn="51" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="dequeueTask_malformedUuid_returnsBadRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'dequeueTask_malformedUuid_returnsBadRequest' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="172" endline="172" begincolumn="8" endcolumn="53" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="submitResult_nonexistentQueue_returnsNotFound" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'submitResult_nonexistentQueue_returnsNotFound' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="186" endline="186" begincolumn="8" endcolumn="50" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="submitResult_invalidEnum_returnsBadRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'submitResult_invalidEnum_returnsBadRequest' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="210" endline="210" begincolumn="8" endcolumn="50" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="getResult_nonexistentQueue_returnsNotFound" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'getResult_nonexistentQueue_returnsNotFound' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="218" endline="218" begincolumn="8" endcolumn="49" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="getResult_malformedUuid_returnsBadRequest" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'getResult_malformedUuid_returnsBadRequest' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="225" endline="225" begincolumn="8" endcolumn="44" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="logging_each_endpoint_emits_info_log" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'logging_each_endpoint_emits_info_log' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+<violation beginline="284" endline="284" begincolumn="8" endcolumn="60" rule="MethodNamingConventions" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueControllerIntegrationTests" method="multiClientIsolation_interleavedCalls_doNotInterfere" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#methodnamingconventions" priority="1">
+The JUnit 5 test method name 'multiClientIsolation_interleavedCalls_doNotInterfere' doesn't match '[a-z][a-zA-Z0-9]*'
+</violation>
+</file>
+<file name="src/test/java/dev/coms4156/project/server/QueueUnitTests.java">
+<violation beginline="5" endline="5" begincolumn="1" endcolumn="64" rule="UnnecessaryImport" ruleset="Code Style" package="dev.coms4156.project.server" class="QueueUnitTests" externalInfoUrl="https://docs.pmd-code.org/snapshot/pmd_rules_java_codestyle.html#unnecessaryimport" priority="4">
+Unused static import 'org.junit.jupiter.api.Assertions.assertNotEquals'
+</violation>
+</file>
+</pmd>

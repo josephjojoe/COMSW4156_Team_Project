@@ -46,7 +46,9 @@ public class QueueController {
    */
   @PostMapping
   public ResponseEntity<Queue> createQueue(@RequestBody CreateQueueRequest request) {
-    log.info("createQueue name={}", request.getName());
+    if (log.isInfoEnabled()) {
+      log.info("createQueue name={}", request.getName());
+    }
     Queue queue = queueService.createQueue(request.getName());
     return ResponseEntity.status(HttpStatus.CREATED).body(queue);
   }
@@ -62,7 +64,9 @@ public class QueueController {
   public ResponseEntity<Task> enqueueTask(
       @PathVariable("queueId") UUID queueId,
       @RequestBody EnqueueTaskRequest request) {
-    log.info("enqueueTask queueId={} priority={}", queueId, request.getPriority());
+    if (log.isInfoEnabled()) {
+      log.info("enqueueTask queueId={} priority={}", queueId, request.getPriority());
+    }
     Task task = new Task(request.getParams(), request.getPriority());
     queueService.enqueueTask(queueId, task);
     return ResponseEntity.status(HttpStatus.CREATED).body(task);
@@ -76,7 +80,9 @@ public class QueueController {
    */
   @GetMapping("/{queueId}/task")
   public ResponseEntity<Task> dequeueTask(@PathVariable("queueId") UUID queueId) {
-    log.info("dequeueTask queueId={}", queueId);
+    if (log.isInfoEnabled()) {
+      log.info("dequeueTask queueId={}", queueId);
+    }
     Task task = queueService.dequeueTask(queueId);
     if (task == null) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -95,8 +101,10 @@ public class QueueController {
   public ResponseEntity<Result> submitResult(
       @PathVariable("queueId") UUID queueId,
       @RequestBody SubmitResultRequest request) {
-    log.info("submitResult queueId={} taskId={} status={}",
+    if (log.isInfoEnabled()) {
+      log.info("submitResult queueId={} taskId={} status={}",
           queueId, request.getTaskId(), request.getStatus());
+    }
     Result result = new Result(request.getTaskId(), request.getOutput(), request.getStatus());
     queueService.submitResult(queueId, result);
     return ResponseEntity.status(HttpStatus.CREATED).body(result);
@@ -113,7 +121,9 @@ public class QueueController {
   public ResponseEntity<Result> getResult(
       @PathVariable("queueId") UUID queueId,
       @PathVariable("taskId") UUID taskId) {
-    log.info("getResult queueId={} taskId={}", queueId, taskId);
+    if (log.isInfoEnabled()) {
+      log.info("getResult queueId={} taskId={}", queueId, taskId);
+    }
     Result result = queueService.getResult(queueId, taskId);
     if (result == null) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -156,7 +166,9 @@ public class QueueController {
    */
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
-    log.warn("badRequest error={}", ex.getMessage());
+    if (log.isWarnEnabled()) {
+      log.warn("badRequest error={}", ex.getMessage());
+    }
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
   }
 
@@ -168,7 +180,9 @@ public class QueueController {
    */
   @ExceptionHandler(IllegalStateException.class)
   public ResponseEntity<String> handleNotFound(IllegalStateException ex) {
-    log.warn("notFound error={}", ex.getMessage());
+    if (log.isWarnEnabled()) {
+      log.warn("notFound error={}", ex.getMessage());
+    }
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
   }
 
@@ -177,11 +191,6 @@ public class QueueController {
    */
   public static class CreateQueueRequest {
     private String name;
-
-    /**
-     * Default constructor.
-     */
-    public CreateQueueRequest() {}
 
     /**
      * Gets the queue name.
@@ -208,11 +217,6 @@ public class QueueController {
   public static class EnqueueTaskRequest {
     private String params;
     private int priority;
-
-    /**
-     * Default constructor.
-     */
-    public EnqueueTaskRequest() {}
 
     /**
      * Gets the task parameters.
@@ -258,11 +262,6 @@ public class QueueController {
     private UUID taskId;
     private String output;
     private Result.ResultStatus status;
-
-    /**
-     * Default constructor.
-     */
-    public SubmitResultRequest() {}
 
     /**
      * Gets the task ID.
