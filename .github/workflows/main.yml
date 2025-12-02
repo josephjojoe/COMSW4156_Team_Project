@@ -7,7 +7,6 @@ on:
   pull_request:
     branches: 
       - main
-
 jobs:
   java-server-ci:
     name: Java Server CI (Checkstyle, PMD, Tests, Jacoco)
