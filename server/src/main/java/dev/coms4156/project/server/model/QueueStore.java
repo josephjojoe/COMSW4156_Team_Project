@@ -76,7 +76,9 @@ public final class QueueStore {
     
     // Register shutdown hook to save snapshot on clean shutdown
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      log.info("Shutdown detected, saving final snapshot...");
+      if (log.isInfoEnabled()) {
+        log.info("Shutdown detected, saving final snapshot...");
+      }
       saveSnapshot();
       snapshotScheduler.shutdown();
     }));
@@ -159,7 +161,9 @@ public final class QueueStore {
         SNAPSHOT_INTERVAL_SECONDS,
         TimeUnit.SECONDS
     );
-    log.info("Started periodic snapshots (interval: {} seconds)", SNAPSHOT_INTERVAL_SECONDS);
+    if (log.isInfoEnabled()) {
+      log.info("Started periodic snapshots (interval: {} seconds)", SNAPSHOT_INTERVAL_SECONDS);
+    }
   }
 
   /**
@@ -234,10 +238,11 @@ public final class QueueStore {
         throw new IOException(
             "Failed to rename temp snapshot file to: " + actualFile.getAbsolutePath());
       }
-
-      log.debug("Snapshot saved successfully ({} queues, {} total tasks)",
-          queueSnapshots.size(),
-          queueSnapshots.stream().mapToInt(q -> q.getTasks().size()).sum());
+      if (log.isDebugEnabled()) {
+        log.debug("Snapshot saved successfully ({} queues, {} total tasks)",
+            queueSnapshots.size(),
+            queueSnapshots.stream().mapToInt(q -> q.getTasks().size()).sum());
+      }
 
     } catch (IOException e) {
       log.error("Failed to save snapshot", e);
@@ -254,7 +259,9 @@ public final class QueueStore {
     File snapshotFile = new File(SNAPSHOT_FILE);
     
     if (!snapshotFile.exists()) {
-      log.info("No snapshot file found, starting with empty queue store");
+      if (log.isInfoEnabled()) {
+        log.info("No snapshot file found, starting with empty queue store");
+      }
       return;
     }
 
@@ -300,9 +307,10 @@ public final class QueueStore {
 
         queues.put(queueId, queue);
       }
-
-      log.info("Snapshot loaded successfully: {} queues, {} tasks, {} results",
-          snapshot.getQueues().size(), totalTasks, totalResults);
+      if (log.isInfoEnabled()) {
+        log.info("Snapshot loaded successfully: {} queues, {} tasks, {} results",
+            snapshot.getQueues().size(), totalTasks, totalResults);
+      }
 
     } catch (IOException e) {
       log.error("Failed to load snapshot", e);

@@ -1,0 +1,89 @@
+{
+  "queues": [
+    {
+      "id": "8da12a02-b914-46ea-9312-a6893c0b04ec",
+      "name": "Queue1",
+      "tasks": [
+        {
+          "id": "3db9dd35-fe54-41c8-bfd3-32bba414cb33",
+          "params": "Test task",
+          "priority": 1,
+          "status": "PENDING"
+        }
+      ],
+      "results": [
+        {
+          "taskId": "3db9dd35-fe54-41c8-bfd3-32bba414cb33",
+          "output": "Success",
+          "status": "SUCCESS",
+          "timestamp": "2025-12-02T18:54:28.587165"
+        }
+      ]
+    },
+    {
+      "id": "11c5ece6-240e-4d63-9e17-0d02313fa255",
+      "name": "test-queue",
+      "tasks": [],
+      "results": []
+    },
+    {
+      "id": "0bf3d532-17aa-4f06-8bf9-56cddc2849d5",
+      "name": "Queue1",
+      "tasks": [],
+      "results": []
+    },
+    {
+      "id": "92e6ebbf-2439-4aba-a59a-560211878390",
+      "name": "Queue1",
+      "tasks": [],
+      "results": []
+    },
+    {
+      "id": "4cbde807-5d0c-4c41-86fd-d30e32665cc7",
+      "name": "Queue1",
+      "tasks": [],
+      "results": []
+    },
+    {
+      "id": "5bb33734-8562-4699-bc79-11a3a61ab7ca",
+      "name": "Queue1",
+      "tasks": [],
+      "results": []
+    },
+    {
+      "id": "9f521f89-164a-4a3d-a022-87dc57f0470a",
+      "name": "Queue1",
+      "tasks": [
+        {
+          "id": "826a5d83-b1ac-458c-b87b-f79eced0df5d",
+          "params": "Test task",
+          "priority": 1,
+          "status": "PENDING"
+        }
+      ],
+      "results": [
+        {
+          "taskId": "826a5d83-b1ac-458c-b87b-f79eced0df5d",
+          "output": "Completed",
+          "status": "SUCCESS",
+          "timestamp": "2025-12-02T18:54:28.604377"
+        }
+      ]
+    },
+    {
+      "id": "c5ea01f9-d5e6-4535-bbc8-7aa78880e145",
+      "name": "test-queue",
+      "tasks": [
+        {
+          "id": "492b1b5b-4a48-403d-a665-d615b9c10c77",
+          "params": "{\"page\": 1}",
+          "priority": 1,
+          "status": "PENDING"
+        }
+      ],
+      "results": []
+    }
+  ],
+  "timestamp": 1764719668611,
+  "version": "1.0"
+}

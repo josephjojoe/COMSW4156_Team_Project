@@ -10,12 +10,6 @@ public class TaskSnapshot {
   private String status;
 
   /**
-   * Default constructor.
-   */
-  public TaskSnapshot() {
-  }
-
-  /**
    * Constructor with parameters.
    *
    * @param id       task ID
