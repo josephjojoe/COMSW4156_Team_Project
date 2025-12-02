@@ -170,6 +170,23 @@ public class QueueService {
   }
 
   /**
+   * Clears all queues from memory and triggers snapshot save.
+   * This is an administrative operation that removes all queues, tasks, and results.
+   */
+  public void clearAll() {
+    queueStore.clearAll();
+  }
+
+  /**
+   * Gets the total number of queues currently in the store.
+   *
+   * @return the number of queues
+   */
+  public int getAllQueueCount() {
+    return queueStore.getAllQueues().size();
+  }
+
+  /**
    * Validates that a queue ID is not null or empty.
    *
    * @param queueId the queue ID to validate

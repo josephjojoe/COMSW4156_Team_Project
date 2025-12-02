@@ -39,6 +39,22 @@ public class Task implements Comparable<Task> {
     this.status = TaskStatus.PENDING;
   }
 
+  /**
+   * Constructs a {@code Task} with a specific ID and status.
+   * Used for restoring tasks from persistence snapshots.
+   *
+   * @param id the task's UUID (must not be null)
+   * @param params the task parameters as a JSON string or plain text
+   * @param priority the priority level (lower values = higher priority)
+   * @param status the task status
+   */
+  public Task(UUID id, String params, int priority, TaskStatus status) {
+    this.id = id;
+    this.params = params;
+    this.priority = priority;
+    this.status = status;
+  }
+
 
   /**
    * Returns the unique task identifier.
@@ -152,8 +168,10 @@ public class Task implements Comparable<Task> {
   }
 
   /**
-   * Equality is defined solely by priority so that compareTo(a,b)==0 implies a.equals(b).
-   * NOTE: With this design, two tasks with the same priority are considered equal.
+   * Two tasks are equal if and only if they have the same unique ID.
+   * Note: This means equals() is not consistent with compareTo(), which is
+   * acceptable since PriorityBlockingQueue does not require consistency
+   * between these methods.
    */
   @Override
   public boolean equals(Object obj) {
@@ -164,12 +182,12 @@ public class Task implements Comparable<Task> {
       return false;
     }
     Task other = (Task) obj;
-    return this.priority == other.priority;
+    return this.id.equals(other.id);
   }
 
   @Override
   public int hashCode() {
-    return Integer.hashCode(priority);
+    return id.hashCode();
   }
 
 

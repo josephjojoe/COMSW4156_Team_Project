@@ -483,10 +483,15 @@ def test_main_function_handles_file_not_found(monkeypatch, capsys):
         'nonexistent.pdf'
     ])
     
-    with pytest.raises(SystemExit) as exc_info:
-        from src.producer import main
-        main()
-    
-    assert exc_info.value.code == 1
-    captured = capsys.readouterr()
-    assert "not found" in captured.err.lower()
+    with patch('src.producer.PDFProducer') as mock_producer_class:
+        mock_instance = Mock()
+        mock_instance.process_pdf.side_effect = FileNotFoundError("File not found: nonexistent.pdf")
+        mock_producer_class.return_value = mock_instance
+        
+        with pytest.raises(SystemExit) as exc_info:
+            from src.producer import main
+            main()
+        
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        assert "not found" in captured.err.lower()

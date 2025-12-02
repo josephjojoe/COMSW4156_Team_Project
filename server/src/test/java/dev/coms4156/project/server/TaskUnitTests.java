@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.coms4156.project.server.model.Task;
 import dev.coms4156.project.server.model.Task.TaskStatus;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -312,69 +313,72 @@ public class TaskUnitTests {
    */
   @Test
   public void testEqualsWithDifferentType() {
-    String notATask = "This is not a task";
-    assertFalse(task.equals(notATask), 
+    String notAtask = "This is not a task";
+    assertFalse(task.equals(notAtask), 
             "Task should not be equal to a String object");
   }
 
   /**
-   * Tests equals method with tasks having same priority.
+   * Tests equals method with tasks having same priority but different IDs.
+   * Tasks should NOT be equal since they have different UUIDs.
    */
   @Test
-  public void testEqualsWithSamePriority() {
+  public void testEqualsWithSamePriorityDifferentIds() {
     Task task1 = new Task("params1", 5);
     Task task2 = new Task("params2", 5);
     
-    assertTrue(task1.equals(task2), 
-            "Tasks with same priority should be equal");
+    assertFalse(task1.equals(task2), 
+            "Tasks with same priority but different IDs should not be equal");
   }
 
   /**
-   * Tests equals method with tasks having different priorities.
+   * Tests equals method with tasks having different IDs.
    */
   @Test
-  public void testEqualsWithDifferentPriority() {
+  public void testEqualsWithDifferentIds() {
     Task task1 = new Task(testParams, 1);
-    Task task2 = new Task(testParams, 2);
+    Task task2 = new Task(testParams, 1);
     
     assertFalse(task1.equals(task2), 
-            "Tasks with different priorities should not be equal");
+            "Tasks with different IDs should not be equal");
   }
 
   /**
-   * Tests that equals is symmetric.
+   * Tests that equals is symmetric using the same task ID.
    */
   @Test
   public void testEqualsSymmetric() {
-    Task task1 = new Task("params1", 3);
-    Task task2 = new Task("params2", 3);
+    UUID sharedId = UUID.randomUUID();
+    Task task1 = new Task(sharedId, "params1", 3, Task.TaskStatus.PENDING);
+    Task task2 = new Task(sharedId, "params2", 5, Task.TaskStatus.IN_PROGRESS);
     
     assertTrue(task1.equals(task2) && task2.equals(task1), 
-            "Equals should be symmetric");
+            "Equals should be symmetric for tasks with same ID");
   }
 
   /**
-   * Tests hashCode consistency with equals.
+   * Tests hashCode consistency with equals using the same task ID.
    */
   @Test
   public void testHashCodeConsistentWithEquals() {
-    Task task1 = new Task("params1", 7);
-    Task task2 = new Task("params2", 7);
+    UUID sharedId = UUID.randomUUID();
+    Task task1 = new Task(sharedId, "params1", 7, Task.TaskStatus.PENDING);
+    Task task2 = new Task(sharedId, "params2", 3, Task.TaskStatus.COMPLETED);
     
     assertEquals(task1.hashCode(), task2.hashCode(), 
-            "Tasks that are equal should have the same hashCode");
+            "Tasks with the same ID should have the same hashCode");
   }
 
   /**
-   * Tests hashCode for tasks with different priorities.
+   * Tests hashCode for tasks with different IDs.
    */
   @Test
-  public void testHashCodeWithDifferentPriorities() {
+  public void testHashCodeWithDifferentIds() {
     Task task1 = new Task(testParams, 1);
-    Task task2 = new Task(testParams, 2);
+    Task task2 = new Task(testParams, 1);
     
     assertNotEquals(task1.hashCode(), task2.hashCode(), 
-            "Tasks with different priorities should likely have different hashCodes");
+            "Tasks with different IDs should have different hashCodes");
   }
 
 }
