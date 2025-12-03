@@ -21,7 +21,7 @@ llm:
   #   - For OpenAI: Set OPENAI_API_KEY environment variable
   #   - For Anthropic: Set ANTHROPIC_API_KEY environment variable
   #   - For mock mode: Leave as null
-  api_key: ${OPENAI_API_KEY}  # Or ${ANTHROPIC_API_KEY}
+  api_key: null # Or ${ANTHROPIC_API_KEY}
   
   # Model Selection
   # OpenAI: "gpt-4o", "gpt-4-turbo"

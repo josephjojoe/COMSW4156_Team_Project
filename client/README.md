@@ -381,7 +381,7 @@ Here's a complete example from start to finish:
 ### Step 1: Start the Queue Service
 ```bash
 cd GroupProject/server
-mvn spring-boot:run
+mvn clean spring-boot:run
 ```
 
 Wait for:
@@ -439,7 +439,7 @@ Waiting for tasks... (no tasks available)
 
 **Check how many tasks remain in Producer Terminal:**
 ```bash
-curl http://localhost:8080/queue/<Queue_ID>/status
+python -m src.admin status <Queue-ID> [--config PATH]
 ```
 Template: curl http://localhost:8080/queue/<Queue_ID>/status
 
@@ -470,6 +470,13 @@ python -m src.aggregator --pdf-id <PDF_ID>
 5. Click "Import"
 
 Your flashcards are now ready to study!
+
+### Use the following to clear all queues (WARNING: This will delete all queues, tasks, and results):
+
+```bash
+cd client
+python -m src.admin clear [--force] [--config PATH]
+```
 
 ### Use the following to clear metadata:
 

@@ -184,6 +184,28 @@ class QueueClient:
                 raise
             raise QueueClientError(f"Failed to get status: {e}") from e
 
+    def clear_all_queues(self) -> Dict[str, Any]:
+        """
+        Clear all queues from the service (DESTRUCTIVE - admin only).
+        
+        WARNING: This permanently deletes all queues, tasks, and results.
+        Use only for testing and cleanup.
+        
+        Returns:
+            dict: Response with message and count of cleared queues
+                  {"message": "...", "queuesCleared": N}
+        """
+        url = f"{self.base_url}/queue/admin/clear"
+
+        try:
+            response = requests.delete(url, timeout=self.timeout)
+            if response.status_code == 400:
+                raise InvalidRequestError(f"Invalid: {self._extract_error(response)}")
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise QueueClientError(f"Failed to clear queues: {e}") from e
+
     def _extract_error(self, response: requests.Response) -> str:
         """Extract error message from response."""
         try:
