@@ -230,14 +230,17 @@ public final class QueueStore {
         throw new IOException(
             "Failed to delete old snapshot file: " + actualFile.getAbsolutePath());
       }
+
       if (!tempFile.renameTo(actualFile)) {
         throw new IOException(
             "Failed to rename temp snapshot file to: " + actualFile.getAbsolutePath());
       }
 
-      log.debug("Snapshot saved successfully ({} queues, {} total tasks)",
-          queueSnapshots.size(),
-          queueSnapshots.stream().mapToInt(q -> q.getTasks().size()).sum());
+      if (log.isDebugEnabled()) {
+        log.debug("Snapshot saved successfully ({} queues, {} total tasks)",
+            queueSnapshots.size(),
+            queueSnapshots.stream().mapToInt(q -> q.getTasks().size()).sum());
+      }
 
     } catch (IOException e) {
       log.error("Failed to save snapshot", e);
@@ -287,7 +290,7 @@ public final class QueueStore {
 
         // Restore results
         if (queueSnap.getResults() != null) {
-          for (ResultSnapshot resultSnap : queueSnap.getResults()) {
+          for (ResultSnapshot resultSnap : queueSnap.getResults()) { 
             Result result = new Result(
                 UUID.fromString(resultSnap.getTaskId()),
                 resultSnap.getOutput(),
@@ -297,12 +300,13 @@ public final class QueueStore {
             totalResults++;
           }
         }
-
         queues.put(queueId, queue);
       }
 
-      log.info("Snapshot loaded successfully: {} queues, {} tasks, {} results",
-          snapshot.getQueues().size(), totalTasks, totalResults);
+      if (log.isInfoEnabled()) { 
+        log.info("Snapshot loaded successfully: {} queues, {} tasks, {} results",
+            snapshot.getQueues().size(), totalTasks, totalResults);
+      }
 
     } catch (IOException e) {
       log.error("Failed to load snapshot", e);
