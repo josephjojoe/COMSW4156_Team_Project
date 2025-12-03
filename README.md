@@ -6,6 +6,11 @@ This is the GitHub repository for the Team Project associated with COMS 4156 Adv
 ___
 Please use the following link to view the repository relevant to the app: [https://github.com/josephjojoe/COMSW4156_Team_Project](https://github.com/josephjojoe/COMSW4156_Team_Project)
 
+# Where to find example client build
+
+Got to:
+**client/**
+
 # Building and Running a Local Instance
 ___
 To build and use this service you must install the following (This guide assumes MacOS):

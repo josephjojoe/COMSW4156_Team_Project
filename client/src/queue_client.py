@@ -108,7 +108,7 @@ class QueueClient:
             if response.status_code == 400:
                 raise InvalidRequestError(f"Invalid: {self._extract_error(response)}")
             response.raise_for_status()
-            return response.json()['taskId']
+            return response.json()['id']
         except requests.RequestException as e:
             if isinstance(e, (QueueNotFoundError, InvalidRequestError)):
                 raise

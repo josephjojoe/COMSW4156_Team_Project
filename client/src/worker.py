@@ -102,8 +102,7 @@ class QuizWorker:
                     continue
 
                 if task is None:
-                    logger.debug("%s found no task in queue %s; sleeping %.1fs",
-                                 self.worker_id, self.queue_id, self.poll_interval)
+                    logger.info("Waiting for tasks... (no tasks available)")
                     time.sleep(self.poll_interval)
                     continue
 
