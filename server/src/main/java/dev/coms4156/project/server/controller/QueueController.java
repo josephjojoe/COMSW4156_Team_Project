@@ -351,11 +351,6 @@ public class QueueController {
     private int queuesCleared;
 
     /**
-     * Default constructor.
-     */
-    public ClearAllResponse() {}
-
-    /**
      * Constructor with fields.
      *
      * @param message the response message
@@ -413,11 +408,6 @@ public class QueueController {
     private int pendingTaskCount;
     private int completedResultCount;
     private boolean hasPendingTasks;
-
-    /**
-     * Default constructor.
-     */
-    public QueueStatusResponse() {}
 
     /**
      * Constructor with all fields.

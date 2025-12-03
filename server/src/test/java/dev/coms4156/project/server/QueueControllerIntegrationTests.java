@@ -350,7 +350,7 @@ public class QueueControllerIntegrationTests {
 
   /** Tests that status endpoint returns correct counts for an empty queue. */
   @Test
-  void getQueueStatus_emptyQueue_returnsZeroCounts() throws Exception {
+  void getQueueStatusEmptyQueueReturnsZeroCounts() throws Exception {
     // Create queue
     String createQueuePayload = "{\"name\":\"StatusTestQueue\"}";
     MvcResult createRes = mockMvc
@@ -376,7 +376,7 @@ public class QueueControllerIntegrationTests {
 
   /** Tests that status endpoint returns 404 for non-existent queue. */
   @Test
-  void getQueueStatus_nonexistentQueue_returnsNotFound() throws Exception {
+  void getQueueStatusNonexistentQueueReturnsNotFound() throws Exception {
     UUID randomId = UUID.randomUUID();
     mockMvc.perform(get("/queue/" + randomId + "/status"))
           .andExpect(status().isNotFound());
@@ -384,7 +384,7 @@ public class QueueControllerIntegrationTests {
 
   /** Tests that status counts update correctly after enqueue operations. */
   @Test
-  void getQueueStatus_afterEnqueue_countsUpdateCorrectly() throws Exception {
+  void getQueueStatusAfterEnqueueCountsUpdateCorrectly() throws Exception {
     // Create queue
     String createQueuePayload = "{\"name\":\"EnqueueTestQueue\"}";
     MvcResult createRes = mockMvc
@@ -418,7 +418,7 @@ public class QueueControllerIntegrationTests {
 
   /** Tests that status counts update correctly after dequeue and submit operations. */
   @Test
-  void getQueueStatus_afterDequeueAndSubmit_countsUpdateCorrectly() throws Exception {
+  void getQueueStatusAfterDequeueAndSubmitCountsUpdateCorrectly() throws Exception {
     // Create queue
     String createQueuePayload = "{\"name\":\"WorkflowTestQueue\"}";
     MvcResult createRes = mockMvc
@@ -502,7 +502,7 @@ public class QueueControllerIntegrationTests {
 
   /** Tests that status endpoint handles malformed UUID correctly. */
   @Test
-  void getQueueStatus_malformedUuid_returnsBadRequest() throws Exception {
+  void getQueueStatusMalformedUuidReturnsBadRequest() throws Exception {
     mockMvc.perform(get("/queue/not-a-valid-uuid/status"))
           .andExpect(status().isBadRequest());
   }
@@ -512,7 +512,7 @@ public class QueueControllerIntegrationTests {
    * This simulates the aggregator's workflow of checking status periodically.
    */
   @Test
-  void getQueueStatus_aggregatorUseCase_detectsCompletion() throws Exception {
+  void getQueueStatusAggregatorUseCaseDetectsCompletion() throws Exception {
     // Create queue
     String createQueuePayload = "{\"name\":\"AggregatorTestQueue\"}";
     MvcResult createRes = mockMvc

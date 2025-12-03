@@ -10,12 +10,6 @@ public class ResultSnapshot {
   private String timestamp;
 
   /**
-   * Default constructor.
-   */
-  public ResultSnapshot() {
-  }
-
-  /**
    * Constructor with parameters.
    *
    * @param taskId    task ID
