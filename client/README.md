@@ -252,6 +252,20 @@ Generating Anki CSV...
 Import this file into Anki to use your flashcards!
 ```
 
+### Operating Administrator 
+
+The administrator (ie admin.py) is an optional CLI entry that allows the user to clear all queues or check the status of a queue. It can take --config flag for specfic working environments that aren't using the default config.yaml, or also the --flag on clear command that forces a clear without double checking
+
+Check queue status:
+```bash
+python -m src.admin status <queue-id> [--config PATH]
+```
+
+Clear all queues:
+```bash
+python -m src.admin clear [--force] [--config PATH]
+```
+
 ## Architecture
 
 ### How Multiple Workers Coordinate
