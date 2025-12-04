@@ -29,8 +29,10 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 public class QueueControllerIntegrationTests {
 
-  @Autowired private MockMvc mockMvc;
-  @Autowired private ObjectMapper objectMapper;
+  @Autowired
+  private MockMvc mockMvc;
+  @Autowired
+  private ObjectMapper objectMapper;
 
   /**
    * Tests the complete lifecycle: create queue, enqueue task, dequeue,
@@ -99,7 +101,9 @@ public class QueueControllerIntegrationTests {
           .andExpect(jsonPath("$.status").value("SUCCESS"));
   }
 
-  /** Verifies that dequeuing from an empty queue returns 204 No Content. */
+  /**
+   * Verifies that dequeuing from an empty queue returns 204 No Content.
+   */
   @Test
   void dequeueEmptyQueueReturnsNoContent() throws Exception {
     // Create queue
@@ -122,7 +126,9 @@ public class QueueControllerIntegrationTests {
 
   // --- API invalid/atypical tests per endpoint ---
 
-  /** Checks that creating a queue with a blank name returns 400 Bad Request. */
+  /**
+   * Checks that creating a queue with a blank name returns 400 Bad Request.
+   */
   @Test
   void createQueueBlankNameReturnsBadRequest() throws Exception {
     String payload = "{\"name\":\"   \"}";
@@ -131,7 +137,9 @@ public class QueueControllerIntegrationTests {
           .andExpect(status().isBadRequest());
   }
 
-  /** Confirms that enqueuing to a nonexistent queue returns 404 Not Found. */
+  /**
+   * Confirms that enqueuing to a nonexistent queue returns 404 Not Found.
+   */
   @Test
   void enqueueTaskNonexistentQueueReturnsNotFound() throws Exception {
     UUID randomId = UUID.randomUUID();
@@ -144,7 +152,9 @@ public class QueueControllerIntegrationTests {
           .andExpect(status().isNotFound());
   }
 
-  /** Tests that a malformed UUID in the enqueue path returns 400 Bad Request. */
+  /**
+   * Tests that a malformed UUID in the enqueue path returns 400 Bad Request.
+   */
   @Test
   void enqueueTaskMalformedUuidReturnsBadRequest() throws Exception {
     String payload = "{\"params\":\"p\",\"priority\":1}";
@@ -154,20 +164,26 @@ public class QueueControllerIntegrationTests {
           .andExpect(status().isBadRequest());
   }
 
-  /** Verifies that dequeuing from a nonexistent queue returns 404 Not Found. */
+  /**
+   * Verifies that dequeuing from a nonexistent queue returns 404 Not Found.
+   */
   @Test
   void dequeueTaskNonexistentQueueReturnsNotFound() throws Exception {
     UUID randomId = UUID.randomUUID();
     mockMvc.perform(get("/queue/" + randomId + "/task")).andExpect(status().isNotFound());
   }
 
-  /** Checks that a malformed UUID in the dequeue path returns 400 Bad Request. */
+  /**
+   * Checks that a malformed UUID in the dequeue path returns 400 Bad Request.
+   */
   @Test
   void dequeueTaskMalformedUuidReturnsBadRequest() throws Exception {
     mockMvc.perform(get("/queue/not-a-uuid/task")).andExpect(status().isBadRequest());
   }
 
-  /** Confirms that submitting a result to a nonexistent queue returns 404 Not Found. */
+  /**
+   * Confirms that submitting a result to a nonexistent queue returns 404 Not Found.
+   */
   @Test
   void submitResultNonexistentQueueReturnsNotFound() throws Exception {
     UUID taskId = UUID.randomUUID();
@@ -181,7 +197,9 @@ public class QueueControllerIntegrationTests {
           .andExpect(status().isNotFound());
   }
 
-  /** Tests that an invalid status enum value returns 400 Bad Request. */
+  /**
+   * Tests that an invalid status enum value returns 400 Bad Request.
+   */
   @Test
   void submitResultInvalidEnumReturnsBadRequest() throws Exception {
     // First create a queue to avoid 404 masking 400
@@ -205,7 +223,9 @@ public class QueueControllerIntegrationTests {
           .andExpect(status().isBadRequest());
   }
 
-  /** Verifies that fetching a result from a nonexistent queue returns 404 Not Found. */
+  /**
+   * Verifies that fetching a result from a nonexistent queue returns 404 Not Found.
+   */
   @Test
   void getResultNonexistentQueueReturnsNotFound() throws Exception {
     mockMvc
@@ -213,14 +233,18 @@ public class QueueControllerIntegrationTests {
           .andExpect(status().isNotFound());
   }
 
-  /** Checks that malformed UUIDs in the get result path return 400 Bad Request. */
+  /**
+   * Checks that malformed UUIDs in the get result path return 400 Bad Request.
+   */
   @Test
   void getResultMalformedUuidReturnsBadRequest() throws Exception {
     mockMvc.perform(get("/queue/not-a-uuid/result/also-bad"))
           .andExpect(status().isBadRequest());
   }
 
-  /** Ensures that each endpoint logs an INFO-level message when called. */
+  /**
+   * Ensures that each endpoint logs an INFO-level message when called.
+   */
   @Test
   void loggingEachEndpointEmitsInfoLog() throws Exception {
     Logger controllerLogger = (Logger) LoggerFactory
@@ -279,7 +303,9 @@ public class QueueControllerIntegrationTests {
     assertTrue(hasCreate && hasEnqueue && hasDequeue && hasSubmit && hasGet);
   }
 
-  /** Tests that multiple queues remain isolated when operations are interleaved. */
+  /**
+   * Tests that multiple queues remain isolated when operations are interleaved.
+   */
   @Test
   void multiClientIsolationInterleavedCallsDoNotInterfere() throws Exception {
     // Create two queues
@@ -348,7 +374,9 @@ public class QueueControllerIntegrationTests {
 
   // --- Queue Status Endpoint Tests ---
 
-  /** Tests that status endpoint returns correct counts for an empty queue. */
+  /**
+   * Tests that status endpoint returns correct counts for an empty queue.
+   */
   @Test
   void getQueueStatusEmptyQueueReturnsZeroCounts() throws Exception {
     // Create queue
@@ -359,7 +387,7 @@ public class QueueControllerIntegrationTests {
                 .content(createQueuePayload))
           .andExpect(status().isCreated())
           .andReturn();
-    
+
     UUID queueId = UUID.fromString(
           objectMapper.readTree(createRes.getResponse().getContentAsString())
                 .get("id").asText());
@@ -374,7 +402,9 @@ public class QueueControllerIntegrationTests {
           .andExpect(jsonPath("$.hasPendingTasks").value(false));
   }
 
-  /** Tests that status endpoint returns 404 for non-existent queue. */
+  /**
+   * Tests that status endpoint returns 404 for non-existent queue.
+   */
   @Test
   void getQueueStatusNonexistentQueueReturnsNotFound() throws Exception {
     UUID randomId = UUID.randomUUID();
@@ -382,7 +412,9 @@ public class QueueControllerIntegrationTests {
           .andExpect(status().isNotFound());
   }
 
-  /** Tests that status counts update correctly after enqueue operations. */
+  /**
+   * Tests that status counts update correctly after enqueue operations.
+   */
   @Test
   void getQueueStatusAfterEnqueueCountsUpdateCorrectly() throws Exception {
     // Create queue
@@ -393,7 +425,7 @@ public class QueueControllerIntegrationTests {
                 .content(createQueuePayload))
           .andExpect(status().isCreated())
           .andReturn();
-    
+
     UUID queueId = UUID.fromString(
           objectMapper.readTree(createRes.getResponse().getContentAsString())
                 .get("id").asText());
@@ -403,8 +435,8 @@ public class QueueControllerIntegrationTests {
       String enqueuePayload = String.format(
             "{\"params\":\"task%d\",\"priority\":%d}", i, i);
       mockMvc.perform(post("/queue/" + queueId + "/task")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(enqueuePayload))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(enqueuePayload))
             .andExpect(status().isCreated());
     }
 
@@ -416,7 +448,9 @@ public class QueueControllerIntegrationTests {
           .andExpect(jsonPath("$.hasPendingTasks").value(true));
   }
 
-  /** Tests that status counts update correctly after dequeue and submit operations. */
+  /**
+   * Tests that status counts update correctly after dequeue and submit operations.
+   */
   @Test
   void getQueueStatusAfterDequeueAndSubmitCountsUpdateCorrectly() throws Exception {
     // Create queue
@@ -427,7 +461,7 @@ public class QueueControllerIntegrationTests {
                 .content(createQueuePayload))
           .andExpect(status().isCreated())
           .andReturn();
-    
+
     UUID queueId = UUID.fromString(
           objectMapper.readTree(createRes.getResponse().getContentAsString())
                 .get("id").asText());
@@ -437,8 +471,8 @@ public class QueueControllerIntegrationTests {
       String enqueuePayload = String.format(
             "{\"params\":\"task%d\",\"priority\":%d}", i, i);
       mockMvc.perform(post("/queue/" + queueId + "/task")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(enqueuePayload))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(enqueuePayload))
             .andExpect(status().isCreated());
     }
 
@@ -454,16 +488,16 @@ public class QueueControllerIntegrationTests {
       MvcResult dequeueRes = mockMvc.perform(get("/queue/" + queueId + "/task"))
             .andExpect(status().isOk())
             .andReturn();
-      
+
       UUID taskId = UUID.fromString(
             objectMapper.readTree(dequeueRes.getResponse().getContentAsString())
                   .get("id").asText());
-      
+
       String submitPayload = String.format(
             "{\"taskId\":\"%s\",\"output\":\"result\",\"status\":\"SUCCESS\"}", taskId);
       mockMvc.perform(post("/queue/" + queueId + "/result")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(submitPayload))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(submitPayload))
             .andExpect(status().isCreated());
     }
 
@@ -479,16 +513,16 @@ public class QueueControllerIntegrationTests {
       MvcResult dequeueRes = mockMvc.perform(get("/queue/" + queueId + "/task"))
             .andExpect(status().isOk())
             .andReturn();
-      
+
       UUID taskId = UUID.fromString(
             objectMapper.readTree(dequeueRes.getResponse().getContentAsString())
                   .get("id").asText());
-      
+
       String submitPayload = String.format(
             "{\"taskId\":\"%s\",\"output\":\"result\",\"status\":\"SUCCESS\"}", taskId);
       mockMvc.perform(post("/queue/" + queueId + "/result")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(submitPayload))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(submitPayload))
             .andExpect(status().isCreated());
     }
 
@@ -500,7 +534,9 @@ public class QueueControllerIntegrationTests {
           .andExpect(jsonPath("$.hasPendingTasks").value(false));
   }
 
-  /** Tests that status endpoint handles malformed UUID correctly. */
+  /**
+   * Tests that status endpoint handles malformed UUID correctly.
+   */
   @Test
   void getQueueStatusMalformedUuidReturnsBadRequest() throws Exception {
     mockMvc.perform(get("/queue/not-a-valid-uuid/status"))
@@ -521,7 +557,7 @@ public class QueueControllerIntegrationTests {
                 .content(createQueuePayload))
           .andExpect(status().isCreated())
           .andReturn();
-    
+
     UUID queueId = UUID.fromString(
           objectMapper.readTree(createRes.getResponse().getContentAsString())
                 .get("id").asText());
@@ -533,8 +569,8 @@ public class QueueControllerIntegrationTests {
       String enqueuePayload = String.format(
             "{\"params\":\"page%d\",\"priority\":%d}", i, i);
       mockMvc.perform(post("/queue/" + queueId + "/task")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(enqueuePayload))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(enqueuePayload))
             .andExpect(status().isCreated());
     }
 
@@ -550,17 +586,17 @@ public class QueueControllerIntegrationTests {
       MvcResult dequeueRes = mockMvc.perform(get("/queue/" + queueId + "/task"))
             .andExpect(status().isOk())
             .andReturn();
-      
+
       UUID taskId = UUID.fromString(
             objectMapper.readTree(dequeueRes.getResponse().getContentAsString())
                   .get("id").asText());
-      
+
       String submitPayload = String.format(
-            "{\"taskId\":\"%s\",\"output\":\"quiz_data_%d\",\"status\":\"SUCCESS\"}", 
+            "{\"taskId\":\"%s\",\"output\":\"quiz_data_%d\",\"status\":\"SUCCESS\"}",
             taskId, i);
       mockMvc.perform(post("/queue/" + queueId + "/result")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(submitPayload))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(submitPayload))
             .andExpect(status().isCreated());
     }
 
@@ -572,5 +608,55 @@ public class QueueControllerIntegrationTests {
           .andExpect(jsonPath("$.hasPendingTasks").value(false));
 
     // Aggregator can now collect all results knowing processing is complete
+  }
+
+  /**
+   * Tests POST /queue with atypical input - null queue name.
+   * Utilized free AI resources to help with design of this test.
+   */
+  @Test
+  void createQueueNullNameReturnsBadRequest() throws Exception {
+    String payload = "{\"name\":null}";
+    mockMvc.perform(post("/queue").contentType(MediaType.APPLICATION_JSON).content(payload))
+          .andExpect(status().isBadRequest());
+  }
+
+  /**
+   * Tests POST /{queueId}/task with atypical input - extremely high priority value.
+   * Utilized free AI resources to help with design of this test.
+   */
+  @Test
+  void enqueueTaskVeryHighPriorityHandledCorrectly() throws Exception {
+    String createQueuePayload = "{\"name\":\"Q5\"}";
+    MvcResult createRes = mockMvc.perform(post("/queue").contentType(MediaType.APPLICATION_JSON)
+          .content(createQueuePayload)).andExpect(status().isCreated()).andReturn();
+    UUID queueId = UUID.fromString(objectMapper.readTree(createRes.getResponse()
+          .getContentAsString()).get("id").asText());
+    String payload = "{\"params\":\"p\",\"priority\":999999}";
+    mockMvc.perform(post("/queue/" + queueId + "/task").contentType(MediaType.APPLICATION_JSON)
+          .content(payload)).andExpect(status().isCreated());
+  }
+
+  /**
+   * Tests POST /{queueId}/result with atypical input - null output value.
+   * Utilized free AI resources to help with design of this test.
+   */
+  @Test
+  void submitResultNullOutputHandledCorrectly() throws Exception {
+    String createQueuePayload = "{\"name\":\"Q6\"}";
+    MvcResult createRes = mockMvc.perform(post("/queue").contentType(MediaType.APPLICATION_JSON)
+          .content(createQueuePayload)).andExpect(status().isCreated()).andReturn();
+    UUID queueId = UUID.fromString(objectMapper.readTree(createRes.getResponse()
+          .getContentAsString()).get("id").asText());
+    String enqueuePayload = "{\"params\":\"p\",\"priority\":1}";
+    MvcResult enqueueRes = mockMvc.perform(post("/queue/" + queueId + "/task")
+                .contentType(MediaType.APPLICATION_JSON).content(enqueuePayload))
+          .andExpect(status().isCreated()).andReturn();
+    UUID taskId = UUID.fromString(objectMapper.readTree(enqueueRes.getResponse()
+          .getContentAsString()).get("id").asText());
+    String submitPayload = String.format(
+          "{\"taskId\":\"%s\",\"output\":null,\"status\":\"SUCCESS\"}", taskId);
+    mockMvc.perform(post("/queue/" + queueId + "/result").contentType(MediaType.APPLICATION_JSON)
+          .content(submitPayload)).andExpect(status().isCreated());
   }
 }
