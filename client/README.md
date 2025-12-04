@@ -72,15 +72,9 @@ cd client
 pip install -r requirements.txt
 ```
 
-**Verify installation:**
-```bash
-pytest --version
-python -c "from src.config import load_config; print('✓ Client installed successfully')"
-```
-
 ### Configuration Setup
 
-Create or verify your `config.yaml` file:
+Create or verify your `config.yaml` file using this template (Example config.yaml built for Anki already in repo):
 ```yaml
 queue_service:
   base_url: "http://localhost:8080"
@@ -92,8 +86,8 @@ storage:
   metadata_dir: "storage/metadata"
 
 llm:
-  provider: "mock"  # Use "openai" or "anthropic" for real LLMs
-  api_key: null     # Set to ${OPENAI_API_KEY} for real APIs
+  provider: "openai"  
+  api_key: ${OPENAI_API_KEY} 
   model: "mock-model"
   max_questions_per_page: 5
 
@@ -111,7 +105,7 @@ anki:
 
 ### Running the Producer
 
-**Command:**
+**Command (will not work, go to demo walkthrough section for live walkthrough):**
 ```bash
 python -m src.producer <pdf_path> [--queue-name NAME] [--config PATH]
 ```
@@ -123,7 +117,7 @@ python -m src.producer <pdf_path> [--queue-name NAME] [--config PATH]
 4. Submits one task per page to the queue (with page image path and metadata)
 5. Saves metadata for the aggregator
 
-**Example:**
+**Example (will not work, go to demo walkthrough section for live walkthrough):**
 ```bash
 python -m src.producer textbooks/biology-chapter1.pdf --queue-name "bio-ch1"
 ```
@@ -151,7 +145,7 @@ Next steps:
 
 ### Running Workers
 
-**Command:**
+**Command (will not work, go to demo walkthrough section for live walkthrough):**
 ```bash
 python -m src.worker <queue_id> [--config PATH]
 ```
@@ -163,18 +157,17 @@ python -m src.worker <queue_id> [--config PATH]
 4. Submits the questions back to the queue as a result
 5. Repeats until stopped (Ctrl+C)
 
-**How to run multiple workers:**
+**How to run multiple workers :**
 
 Open separate terminal windows and run the same command:
 ```bash
-# Terminal 1
+# Terminal 1 (NOT REAL QUEUE ID)
 python -m src.worker a1b2c3d4-5e6f-7g8h-9i0j-k1l2m3n4o5p6
 
-# Terminal 2
+# Terminal 2 (NOT REAL QUEUE ID)
 python -m src.worker a1b2c3d4-5e6f-7g8h-9i0j-k1l2m3n4o5p6
 
-# Terminal 3
-python -m src.worker a1b2c3d4-5e6f-7g8h-9i0j-k1l2m3n4o5p6
+# Etc
 ```
 
 **How workers coordinate:**
@@ -207,9 +200,9 @@ Polling for tasks... (Press Ctrl+C to stop)
 ...
 ```
 
-### Running the Aggregator
+### Running the Aggregator 
 
-**Command:**
+**Command (will not work, go to demo walkthrough section for live walkthrough):**
 ```bash
 python -m src.aggregator <queue_id> [--output PATH] [--config PATH]
 ```
@@ -231,7 +224,7 @@ Question,Answer,Tags
 ...
 ```
 
-**Example:**
+**Example (will not work, go to demo walkthrough section for live walkthrough):**
 ```bash
 python -m src.aggregator a1b2c3d4-5e6f-7g8h-9i0j-k1l2m3n4o5p6 --output biology_deck.csv
 ```
@@ -257,6 +250,20 @@ Generating Anki CSV...
 
 ✓ Anki deck generated: output/biology_deck.csv
 Import this file into Anki to use your flashcards!
+```
+
+### Operating Administrator 
+
+The administrator (ie admin.py) is an optional CLI entry that allows the user to clear all queues or check the status of a queue. It can take --config flag for specfic working environments that aren't using the default config.yaml, or also the --flag on clear command that forces a clear without double checking
+
+Check queue status:
+```bash
+python -m src.admin status <queue-id> [--config PATH]
+```
+
+Clear all queues:
+```bash
+python -m src.admin clear [--force] [--config PATH]
 ```
 
 ## Architecture
@@ -387,8 +394,8 @@ Here's a complete example from start to finish:
 
 ### Step 1: Start the Queue Service
 ```bash
-cd GroupProject
-mvn spring-boot:run
+cd GroupProject/server
+mvn clean spring-boot:run
 ```
 
 Wait for:
@@ -396,44 +403,45 @@ Wait for:
 Started Application in X.XXX seconds
 ```
 
-### Step 2: Process a PDF
+### Step 2: Process a PDF in new Terminal
 ```bash
 cd client
-python -m src.producer sample.pdf --queue-name "demo"
+python -m src.producer sampleInputs/sample.pdf --queue-name "demo"
 ```
 
-**Note the Queue ID** from the output:
-```
-Queue ID: abc123...
+**Note the Queue ID and PDF ID** from the output. Will need this for the aggregator:
+```bash
+Queue ID: abc123...(<Queue_ID>)
+PDF ID: qaz345...(<PDF_ID>)
 ```
 
-### Step 3: Start Multiple Workers
+### Step 3: Start Multiple Workers in different terminals
 
 Open 3 terminal windows:
 
-**Terminal 1:**
+**Open Terminal 1:**
 ```bash
 cd client
-python -m src.worker abc123...
+python -m src.worker <Queue_ID>
 ```
 
-**Terminal 2:**
+**Open Terminal 2:**
 ```bash
 cd client
-python -m src.worker abc123...
+python -m src.worker <Queue_ID>
 ```
 
-**Terminal 3:**
+**Open Terminal 3:**
 ```bash
 cd client
-python -m src.worker abc123...
+python -m src.worker <Queue_ID>
 ```
 
 Watch as they process pages in parallel:
 ```
-[Worker 1] Processing page 1...
-[Worker 2] Processing page 2...
-[Worker 3] Processing page 3...
+[Worker 1] Processing task=<Task_ID> pdf_id=<PDF_ID> image=<Img.png>...
+[Worker 2] Processing task=<Task_ID> pdf_id=<PDF_ID> image=<Img.png>...
+[Worker 3] Processing task=<Task_ID> pdf_id=<PDF_ID> image=<Img.png>...
 ```
 
 ### Step 4: Wait for Completion
@@ -443,17 +451,28 @@ Workers will continue until all tasks are done. When you see:
 Waiting for tasks... (no tasks available)
 ```
 
+**Check how many tasks remain in Producer Terminal:**
+```bash
+python -m src.admin status <Queue-ID> [--config PATH]
+```
+Template: curl http://localhost:8080/queue/<Queue_ID>/status
+
 from all workers, processing is complete. Press Ctrl+C to stop them.
 
-### Step 5: Generate Anki Deck
+### Step 5: Run Aggregator in Same terminal as Producer
 ```bash
-python -m src.aggregator abc123... --output demo_deck.csv
+python -m src.aggregator --queue-id <QUEUE_ID>
 ```
 
 Output:
 ```
 ✓ Anki deck generated: output/demo_deck.csv
 Total questions: 47
+```
+
+Alternative if doing much later after running producer, and in different session now.:
+```bash
+python -m src.aggregator --pdf-id <PDF_ID>
 ```
 
 ### Step 6: Import to Anki
@@ -465,6 +484,23 @@ Total questions: 47
 5. Click "Import"
 
 Your flashcards are now ready to study!
+
+### Use the following to clear all queues (WARNING: This will delete all queues, tasks, and results):
+
+```bash
+cd client
+python -m src.admin clear [--force] [--config PATH]
+```
+
+### Use the following to clear metadata:
+
+```bash
+cd client
+rm -rf storage/pages/*
+rm -rf storage/metadata/*
+rm -rf storage/results/*
+```
+
 
 ## Troubleshooting
 
@@ -482,8 +518,8 @@ ls src/__init__.py  # Should exist
 ls tests/__init__.py  # Should exist
 
 # Run with -m flag
-python -m src.producer file.pdf  # ✅ Correct
-python src/producer.py file.pdf  # ❌ Wrong
+python -m src.producer sample.pdf  # Correct
+python src/producer.py sanmple.pdf  # Wrong
 ```
 
 ### "FileNotFoundError: Configuration file not found"
@@ -496,7 +532,7 @@ python src/producer.py file.pdf  # ❌ Wrong
 ls config.yaml
 
 # Or specify path
-python -m src.producer file.pdf --config /path/to/config.yaml
+python -m src.producer sample.pdf --config /path/to/config.yaml
 ```
 
 ### "QueueClientError: Failed to create queue"
@@ -540,10 +576,10 @@ pdftoppm -v
 **Solution:**
 ```bash
 # Verify PDF with system tools
-file document.pdf  # Should say "PDF document"
+file sample.pdf  # Should say "PDF document"
 
 # Try opening in Preview/Acrobat
-open document.pdf
+open sample.pdf
 
 # Use a different PDF for testing
 ```

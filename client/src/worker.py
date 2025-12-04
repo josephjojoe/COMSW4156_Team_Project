@@ -87,6 +87,8 @@ class QuizWorker:
         the worker waits ``poll_interval`` seconds before polling again.
         """
         logger.info("%s starting main loop", self.worker_id)
+        is_idle = False  # Track idle state
+        
         try:
             while True:
                 try:
@@ -102,11 +104,18 @@ class QuizWorker:
                     continue
 
                 if task is None:
-                    logger.debug("%s found no task in queue %s; sleeping %.1fs",
-                                 self.worker_id, self.queue_id, self.poll_interval)
+                    # Only log when transitioning to idle state
+                    if not is_idle:
+                        logger.info("Waiting for tasks... (no tasks available)")
+                        is_idle = True
                     time.sleep(self.poll_interval)
                     continue
 
+                # Back to working state
+                if is_idle:
+                    logger.info("Task received, resuming processing")
+                    is_idle = False
+                
                 self._process_task(task)
         except KeyboardInterrupt:
             logger.info("%s received KeyboardInterrupt, shutting down cleanly", self.worker_id)
@@ -307,7 +316,7 @@ def main() -> None:
     CLI entry point.
 
     Usage:
-        python worker.py <queue_id> [--config CONFIG_PATH]
+        python -m src.worker <queue_id> [--config CONFIG_PATH]
     """
     logging.basicConfig(
         level=logging.INFO,

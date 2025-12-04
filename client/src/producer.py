@@ -242,7 +242,7 @@ Examples:
   python producer.py textbook.pdf --config custom_config.yaml
 
 The queue ID will be displayed after processing. Use this ID to start workers:
-  python worker.py <queue_id>
+  python -m src.worker <queue_id>
         """
     )
     
@@ -288,10 +288,14 @@ The queue ID will be displayed after processing. Use this ID to start workers:
         print(f"\n✓ PDF processed successfully!")
         print(f"\nQueue ID: {queue_id}")
         print(f"\nNext steps:")
-        print(f"  1. Start one or more workers:")
-        print(f"     python worker.py {queue_id}")
-        print(f"\n  2. After workers complete, aggregate results:")
-        print(f"     python aggregator.py {queue_id}")
+        print(f"  1. Start one or more workers in separate terminals:")
+        print(f"     python -m src.worker {queue_id}")
+        print(f"\n  2. After workers complete, aggregate results and retrieve output csv in client/output/:")
+        print(f"     python -m src.aggregator --queue-id {queue_id}")
+        print(f"\n  Optional: Check Status of Queue at any time:")
+        print(f"     python -m src.admin status {queue_id}")
+        print(f"\n  Optional [DANGEROUS]: Clear all queues, tasks and results:")
+        print(f"     python -m src.admin clear")
         print()
         
         sys.exit(0)

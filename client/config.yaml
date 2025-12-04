@@ -1,0 +1,50 @@
+# PDF Quiz Generator Configuration
+
+# Queue Service Settings
+queue_service:
+  base_url: "http://localhost:8080"
+
+# Storage Paths
+storage:
+  pdf_dir: "storage/pdfs"
+  pages_dir: "storage/pages"
+  results_dir: "storage/results"
+  metadata_dir: "storage/metadata"
+
+# LLM Service Settings
+llm:
+  # Provider: "openai", "anthropic", "gemini", or "mock"
+  provider: "mock"
+  
+  # API Key (use environment variable for security)
+  # Examples:
+  #   - For OpenAI: Set OPENAI_API_KEY environment variable
+  #   - For Anthropic: Set ANTHROPIC_API_KEY environment variable
+  #   - For mock mode: Leave as null
+  api_key: null # Or ${ANTHROPIC_API_KEY}
+  
+  # Model Selection
+  # OpenAI: "gpt-4o", "gpt-4-turbo"
+  # Anthropic: "claude-3-5-sonnet-20241022", "claude-3-opus-20240229"
+  # Gemini: "gemini-1.5-flash", "gemini-1.5-pro"
+  # Mock: "mock-model"
+  model: "mock-model"
+  
+  # Questions per page
+  max_questions_per_page: 5
+
+# Worker Configuration
+worker:
+  # Seconds to wait between polls when queue is empty
+  poll_interval: 2.0
+  
+  # Maximum retry attempts for failed tasks
+  max_retries: 3
+  
+  # Exponential backoff multiplier (seconds)
+  retry_backoff: 2.0
+
+# Anki Output Configuration
+anki:
+  deck_name: "Quiz Deck"
+  output_dir: "output"
