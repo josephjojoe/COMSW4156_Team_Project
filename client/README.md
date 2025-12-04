@@ -2,7 +2,7 @@
 
 ## Overview
 
-The PDF Quiz Generator is a sample client application that demonstrates the capabilities of our Task Queue Service. It converts PDF textbooks into Anki flashcard decks by distributing page processing work across multiple worker instances.
+This client demonstrates how to use the Runtime Terrors Task Queue Service to build a distributed system for processing PDF textbooks into Anki flashcard decks. The system splits PDF pages, distributes them to workers for LLM-based question generation, and aggregates results into importable flashcard files.
 
 **What it does:**
 1. Takes a PDF textbook as input
@@ -74,7 +74,7 @@ pip install -r requirements.txt
 
 ### Configuration Setup
 
-Create or verify your `config.yaml` file using this template (Example config.yaml built for Anki already in repo):
+Create or verify your `config.yaml` file using this template or edit current `config.yaml` file (Example config.yaml built for Anki already in repo):
 ```yaml
 queue_service:
   base_url: "http://localhost:8080"
@@ -254,6 +254,8 @@ Import this file into Anki to use your flashcards!
 
 ### Operating Administrator 
 
+The administrator was not a part of the original client plan was added to handle new API entry points of clearing queues, and also to allow the user to check current queue status. 
+
 The administrator (ie admin.py) is an optional CLI entry that allows the user to clear all queues or check the status of a queue. It can take --config flag for specfic working environments that aren't using the default config.yaml, or also the --flag on clear command that forces a clear without double checking
 
 Check queue status:
@@ -313,6 +315,10 @@ Time  Worker 1              Worker 2              Worker 3              Queue St
 - The service uses **thread-safe data structures** (e.g., `PriorityBlockingQueue`)
 - No worker-to-worker communication needed
 - Scalable: run 1 worker or 100 workers with no configuration changes
+
+### How the Service Tells Clients Apart
+
+The queue service distinguishes between client instances through HTTP request context rather than persistent identifiers. Each request includes source IP address, port, and timestamp, allowing the service to track individual HTTP calls. However, the service does not maintain worker sessions or registrations—it only tracks task ownership at the moment of dequeue. Once a worker receives a task via `GET /queue/{id}/task`, that task is "owned" by requiring the correct task ID when submitting results. Multiple workers on the same machine are distinguished by their source ports (e.g., `127.0.0.1:54321`, `127.0.0.1:54322`), but the service treats each new HTTP request independently without remembering previous interactions from the same worker. This stateless design eliminates the need for worker registration, enables dynamic scaling, and simplifies fault tolerance—workers can crash and restart without cleanup.
 
 ## Configuration
 
@@ -616,7 +622,71 @@ curl https://api.openai.com/v1/models \
   -H "Authorization: Bearer $OPENAI_API_KEY"
 ```
 
+## Developing Your Own Client
 
+### Overview
 
+A client application integrates with the queue service through standard REST API calls. Clients implement one or more roles: **Producer** creates queues and submits tasks, **Worker** processes tasks, and **Consumer/Aggregator** collects results. The service is stateless—no registration, authentication, or persistent sessions required.
 
+### API Endpoints
+
+The service exposes six REST endpoints:
+
+1. **POST /queue** - Create a new queue (returns queue ID)
+2. **POST /queue/{queueId}/task** - Submit a task with parameters and priority
+3. **GET /queue/{queueId}/task** - Poll for next available task (thread-safe, returns 204 if empty)
+4. **POST /queue/{queueId}/result** - Submit result for completed task
+5. **GET /queue/{queueId}/result/{taskId}** - Retrieve result for specific task
+6. **GET /queue/{queueId}/status** - Check queue status (pending/completed counts)
+
+All requests use JSON format. Task parameters must be JSON-encoded strings. The service returns appropriate HTTP status codes (200 OK, 201 Created, 204 No Content, 404 Not Found).
+
+### Client Implementation Requirements
+
+**Technical Prerequisites:**
+- HTTP client library (e.g., `requests` in Python, `HttpClient` in Java, `axios` in JavaScript)
+- JSON serialization/deserialization support
+- Basic error handling and retry logic
+
+**Producer Pattern:**
+Create a queue, split work into tasks, submit each task with appropriate priority, and save queue/task IDs for later retrieval.
+
+**Worker Pattern:**
+Continuously poll for tasks using GET /task endpoint. When a task is received, deserialize the parameters, process the work, and submit results using POST /result. Include proper error handling and submit status as "SUCCESS" or "FAILURE". Implement polling intervals (2-5 seconds when queue is empty) to avoid overwhelming the service.
+
+**Aggregator Pattern:**
+Poll queue status endpoint until all expected tasks are complete (pendingTaskCount = 0). Collect all results using GET /result/{taskId} for each task, then combine or process the aggregated results.
+
+### Best Practices
+
+- **Polling:** Wait 2-5 seconds between polls when queue is empty
+- **Timeouts:** Set 30-second HTTP timeouts to prevent hanging
+- **Error Handling:** Implement exponential backoff for transient failures
+- **JSON Encoding:** Always JSON-encode task parameters as strings, not objects
+- **Connection Pooling:** Reuse HTTP connections for better performance
+- **Graceful Shutdown:** Handle SIGINT/SIGTERM to stop workers cleanly
+
+### Common Pitfalls to Avoid
+
+- Don't poll continuously without delays—this creates unnecessary load
+- Don't assume tasks are processed in submission order—use priority if order matters
+- Don't hardcode queue or task IDs—always use returned values from API
+- Don't submit results multiple times for the same task
+- Don't forget to handle 204 No Content responses (empty queue is not an error)
+
+### Testing Your Client
+
+Test against a running queue service (localhost:8080 by default). Verify your client can create queues, submit tasks, retrieve tasks, and submit results. Test edge cases like empty queues, network failures, and worker crashes. The PDF Quiz Generator client in this repository serves as a complete reference implementation.
+
+### Getting Started
+
+1. Ensure queue service is running at http://localhost:8080
+2. Implement API wrapper methods for the six endpoints
+3. Build producer to create queue and submit tasks
+4. Build worker to poll, process, and submit results
+5. Build aggregator to collect completed results
+6. Add error handling, logging, and retry logic
+7. Test complete workflow end-to-end
+
+For detailed examples, refer to the PDF Quiz Generator client implementation in this repository. The `queue_client.py` module demonstrates all API interactions.
 
