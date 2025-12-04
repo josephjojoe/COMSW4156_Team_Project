@@ -280,24 +280,34 @@ public final class QueueStore {
         // Restore tasks
         if (queueSnap.getTasks() != null) {
           for (TaskSnapshot taskSnap : queueSnap.getTasks()) {
-            UUID taskId = UUID.fromString(taskSnap.getId());
-            Task.TaskStatus status = Task.TaskStatus.valueOf(taskSnap.getStatus());
-            Task task = new Task(taskId, taskSnap.getParams(), taskSnap.getPriority(), status);
-            queue.enqueue(task);
-            totalTasks++;
+            try {
+              UUID taskId = UUID.fromString(taskSnap.getId());
+              Task.TaskStatus status = Task.TaskStatus.valueOf(taskSnap.getStatus());
+              Task task = new Task(taskId, taskSnap.getParams(), taskSnap.getPriority(), status);
+              queue.enqueue(task);
+              totalTasks++;
+            } catch (IllegalArgumentException e) {
+              log.warn("Skipping task with invalid data (id: {}, status: {}): {}",
+                  taskSnap.getId(), taskSnap.getStatus(), e.getMessage());
+            }
           }
         }
 
         // Restore results
         if (queueSnap.getResults() != null) {
-          for (ResultSnapshot resultSnap : queueSnap.getResults()) { 
-            Result result = new Result(
-                UUID.fromString(resultSnap.getTaskId()),
-                resultSnap.getOutput(),
-                Result.ResultStatus.valueOf(resultSnap.getStatus())
-            );
-            queue.addResult(result);
-            totalResults++;
+          for (ResultSnapshot resultSnap : queueSnap.getResults()) {
+            try {
+              Result result = new Result(
+                  UUID.fromString(resultSnap.getTaskId()),
+                  resultSnap.getOutput(),
+                  Result.ResultStatus.valueOf(resultSnap.getStatus())
+              );
+              queue.addResult(result);
+              totalResults++;
+            } catch (IllegalArgumentException e) {
+              log.warn("Skipping result with invalid data (taskId: {}, status: {}): {}",
+                  resultSnap.getTaskId(), resultSnap.getStatus(), e.getMessage());
+            }
           }
         }
         queues.put(queueId, queue);
