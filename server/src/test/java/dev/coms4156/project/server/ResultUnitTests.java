@@ -40,6 +40,11 @@
 
 package dev.coms4156.project.server;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import dev.coms4156.project.server.model.Result;
 import dev.coms4156.project.server.model.Result.ResultStatus;
 import dev.coms4156.project.server.model.Task;
@@ -47,8 +52,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the Result class.

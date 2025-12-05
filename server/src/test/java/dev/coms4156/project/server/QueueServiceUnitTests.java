@@ -55,6 +55,11 @@
 
 package dev.coms4156.project.server;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import dev.coms4156.project.server.model.Queue;
 import dev.coms4156.project.server.model.Result;
 import dev.coms4156.project.server.model.Result.ResultStatus;
@@ -65,8 +70,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for QueueService.
@@ -168,7 +171,7 @@ public class QueueServiceUnitTests {
   void testGetQueueNullIdThrows() {
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.getQueue( null)
+          () -> this.queueService.getQueue(null)
     );
   }
 
@@ -176,7 +179,7 @@ public class QueueServiceUnitTests {
   void testQueueExistsNullIdThrows() {
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.queueExists( null)
+          () -> this.queueService.queueExists(null)
     );
   }
 
@@ -185,7 +188,7 @@ public class QueueServiceUnitTests {
     Task task = new Task("p", 1);
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.enqueueTask( null, task)
+          () -> this.queueService.enqueueTask(null, task)
     );
   }
 
@@ -212,7 +215,7 @@ public class QueueServiceUnitTests {
   void testDequeueTaskNullQueueIdThrows() {
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.dequeueTask( null)
+          () -> this.queueService.dequeueTask(null)
     );
   }
 
@@ -234,7 +237,7 @@ public class QueueServiceUnitTests {
     );
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.submitResult( null, result)
+          () -> this.queueService.submitResult(null, result)
     );
   }
 
@@ -272,7 +275,7 @@ public class QueueServiceUnitTests {
     UUID taskId = UUID.randomUUID();
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.getResult( null, taskId)
+          () -> this.queueService.getResult(null, taskId)
     );
   }
 
