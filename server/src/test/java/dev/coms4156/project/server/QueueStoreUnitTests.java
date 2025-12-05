@@ -54,9 +54,9 @@ public class QueueStoreUnitTests {
   private QueueStore store;
 
   /**
-  * Before each test it resets the QueueStore state
-  * to ensures each test executes in a clean and isolated environment.
-  */
+   * Before each test it resets the QueueStore state
+   * to ensures each test executes in a clean and isolated environment.
+   */
   @BeforeEach
   void setUp() {
     store = QueueStore.getInstance();
@@ -76,8 +76,8 @@ public class QueueStoreUnitTests {
   }
 
   /**
-  * Verifies that multiple calls to getInstance() return the same object reference.
-  */
+   * Verifies that multiple calls to getInstance() return the same object reference.
+   */
   @Test
   public void testSingletonInstance() {
     QueueStore store1 = QueueStore.getInstance();
@@ -86,8 +86,8 @@ public class QueueStoreUnitTests {
   }
 
   /**
-  * Verifies that a new Queue can be created and retrieved successfully.
-  */
+   * Verifies that a new Queue can be created and retrieved successfully.
+   */
   @Test
   public void testCreateQueue() {
     Queue q1 = store.createQueue("Queue 1");
@@ -113,10 +113,6 @@ public class QueueStoreUnitTests {
   public void testRemoveQueueFailure() {
     assertFalse(store.removeQueue(UUID.randomUUID()));
   }
-
-  // ========================
-  // Snapshot Tests
-  // ========================
 
   /**
    * Verifies that saveSnapshot creates a snapshot file.
@@ -166,7 +162,7 @@ public class QueueStoreUnitTests {
     Task task2 = new Task("params2", 2);
     queue2.enqueue(task2);
 
-    UUID queue1Id = queue1.getId();
+    final UUID queue1Id = queue1.getId();
     final UUID queue2Id = queue2.getId();
     final UUID task1Id = task1.getId();
 
@@ -387,10 +383,11 @@ public class QueueStoreUnitTests {
   /**
    * Verifies that loadSnapshot handles missing snapshot file gracefully.
    */
+  @SuppressWarnings("ResultOfMethodCallIgnored")
   @Test
   public void testLoadSnapshotWithMissingFile() throws Exception {
     // Ensure the file doesn't exist
-    boolean ignored = new File(SNAPSHOT_FILE).delete();
+    new File(SNAPSHOT_FILE).delete();
 
     // Load snapshot - should not throw
     Method loadSnapshotMethod = QueueStore.class.getDeclaredMethod("loadSnapshot");
