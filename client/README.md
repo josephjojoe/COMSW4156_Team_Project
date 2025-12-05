@@ -394,7 +394,7 @@ anki:
 
 ## Demo Walkthrough
 
-Here's a complete example from start to finish:
+Here's a complete example from start to finish.
 
 ### Step 1: Start the Queue Service
 ```bash
@@ -408,8 +408,13 @@ Started Application in X.XXX seconds
 ```
 
 ### Step 2: Process a PDF in new Terminal
+
+In any terminal that will run client/worker commands, make sure your OpenRouter key is
+exported before starting:
+
 ```bash
 cd client
+export OPENROUTER_API_KEY="sk-or-..."  # required for LLM calls
 python -m src.producer sampleInputs/sample.pdf --queue-name "demo"
 ```
 
@@ -426,18 +431,21 @@ Open 3 terminal windows:
 **Open Terminal 1:**
 ```bash
 cd client
+export OPENROUTER_API_KEY="sk-or-..."  # required in every worker terminal
 python -m src.worker <Queue_ID>
 ```
 
 **Open Terminal 2:**
 ```bash
 cd client
+export OPENROUTER_API_KEY="sk-or-..."  # required in every worker terminal
 python -m src.worker <Queue_ID>
 ```
 
 **Open Terminal 3:**
 ```bash
 cd client
+export OPENROUTER_API_KEY="sk-or-..."  # required in every worker terminal
 python -m src.worker <Queue_ID>
 ```
 
