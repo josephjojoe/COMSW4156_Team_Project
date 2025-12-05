@@ -295,26 +295,61 @@ class LLMService:
             "Again, respond ONLY with JSON."
         )
 
-        messages = [
-            {"role": "system", "content": system_message},
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": user_instructions},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/png;base64,{image_b64}",
+        # Some providers (notably the Google-backed Gemma 3 API) do not yet
+        # support separate system / developer messages and will return a 400
+        # if we send them. For those models we fold the system instructions
+        # into the user message so the prompt is still respected.
+        model_name = (self.model or "openai/gpt-4o-mini").lower()
+        if "google/gemma-3" in model_name:
+            combined_instructions = f"{system_message} {user_instructions}"
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": combined_instructions},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{image_b64}",
+                            },
                         },
-                    },
-                ],
-            },
-        ]
+                    ],
+                }
+            ]
+        else:
+            messages = [
+                {"role": "system", "content": system_message},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_instructions},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{image_b64}",
+                            },
+                        },
+                    ],
+                },
+            ]
 
         payload = {
-            "model": self.model or "openai/gpt-4o-mini",
+            "model": self.model or "google/gemma-3-27b-it:free",
             "messages": messages,
         }
+
+        # Prefer structured / JSON-formatted output when supported by the model.
+        #
+        # OpenRouter exposes an OpenAI-style ``response_format`` parameter that,
+        # for compatible models (including Gemma 3 27B via OpenRouter), strongly
+        # biases the response to be valid JSON. We still keep natural-language
+        # instructions in the prompt, but this flag dramatically reduces the
+        # chances of getting non-JSON text that would cause parsing failures.
+        #
+        # For models that ignore or do not support this parameter, behaviour
+        # falls back to the regular text response and our parser remains
+        # defensive.
+        payload["response_format"] = {"type": "json_object"}
 
         try:
             response = requests.post(
@@ -378,10 +413,55 @@ def _parse_qa_pairs_from_json(text: str) -> List[Dict[str, str]]:
     This is not used by the mock provider but is kept as a small, focused
     helper that can be reused when real LLM providers are introduced.
     """
-    try:
-        data = json.loads(text)
-    except json.JSONDecodeError as exc:  # pragma: no cover - defensive
-        raise LLMServiceError(f"Failed to decode LLM JSON response: {exc}") from exc
+
+    # Normalise and defensively extract JSON from common wrappers such as
+    # Markdown code fences or explanatory text that some models still add
+    # around the JSON, even when asked not to.
+    raw = text.strip()
+
+    # Strip Markdown ``` fences (optionally with a language hint).
+    if raw.startswith("```"):
+        lines = raw.splitlines()
+        if lines and lines[0].lstrip().startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].lstrip().startswith("```"):
+            lines = lines[:-1]
+        raw = "\n".join(lines).strip()
+
+    data: List[Dict[str, str]] | Dict[str, object]
+
+    # If the cleaned string does not start with a typical JSON delimiter,
+    # attempt to slice out the first top-level array as a best effort before
+    # falling back to a direct load.
+    if not (raw.startswith("[") or raw.startswith("{")): 
+        start = raw.find("[")
+        end = raw.rfind("]")
+        if start != -1 and end != -1 and start < end:
+            candidate = raw[start : end + 1]
+            try:
+                data = json.loads(candidate)
+            except json.JSONDecodeError:
+                # Fall back to loading the entire string below so that the
+                # caller still receives a clear, debuggable error if parsing
+                # ultimately fails.
+                try:
+                    data = json.loads(raw)
+                except json.JSONDecodeError as exc:  # pragma: no cover - defensive
+                    raise LLMServiceError(
+                        f"Failed to decode LLM JSON response: {exc}"
+                    ) from exc
+        else:
+            try:
+                data = json.loads(raw)
+            except json.JSONDecodeError as exc:  # pragma: no cover - defensive
+                raise LLMServiceError(
+                    f"Failed to decode LLM JSON response: {exc}"
+                ) from exc
+    else:
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError as exc:  # pragma: no cover - defensive
+            raise LLMServiceError(f"Failed to decode LLM JSON response: {exc}") from exc
 
     if not isinstance(data, list):
         raise LLMServiceError("Expected a list of Q&A dictionaries from LLM")
