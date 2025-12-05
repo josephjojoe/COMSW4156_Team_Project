@@ -433,7 +433,7 @@ def _parse_qa_pairs_from_json(text: str) -> List[Dict[str, str]]:
     # If the cleaned string does not start with a typical JSON delimiter,
     # attempt to slice out the first top-level array as a best effort before
     # falling back to a direct load.
-    if not (raw.startswith("[") or raw.startswith("{")): 
+    if not (raw.startswith("[") or raw.startswith("{")):
         start = raw.find("[")
         end = raw.rfind("]")
         if start != -1 and end != -1 and start < end:
@@ -463,11 +463,45 @@ def _parse_qa_pairs_from_json(text: str) -> List[Dict[str, str]]:
         except json.JSONDecodeError as exc:  # pragma: no cover - defensive
             raise LLMServiceError(f"Failed to decode LLM JSON response: {exc}") from exc
 
-    if not isinstance(data, list):
+    # At this point ``data`` is valid JSON. Historically we asked the model to
+    # return a bare list, but with ``response_format={"type": "json_object"}``
+    # many providers now return an object wrapper instead. We therefore accept:
+    #
+    #   1. A top-level list of {question, answer} dicts
+    #   2. A top-level object containing such a list under a common key
+    #      (e.g. "qa_pairs", "questions", "items")
+    #   3. A single {question, answer} object, which we normalise to a list
+    if isinstance(data, list):
+        items = data
+    elif isinstance(data, dict):
+        # Case 3: single object with question/answer fields
+        if isinstance(data.get("question"), str) and isinstance(data.get("answer"), str):
+            items = [data]  # type: ignore[assignment]
+        else:
+            # Case 2: search for the first list value that looks like Q&A pairs
+            candidate_list = None
+            # Try some likely keys first
+            for key in ("qa_pairs", "questions", "items", "cards"):
+                value = data.get(key)
+                if isinstance(value, list):
+                    candidate_list = value
+                    break
+            # Fallback: any list value
+            if candidate_list is None:
+                for value in data.values():
+                    if isinstance(value, list):
+                        candidate_list = value
+                        break
+
+            if candidate_list is None:
+                raise LLMServiceError("Expected a list of Q&A dictionaries from LLM")
+
+            items = candidate_list  # type: ignore[assignment]
+    else:
         raise LLMServiceError("Expected a list of Q&A dictionaries from LLM")
 
     results: List[Dict[str, str]] = []
-    for item in data:
+    for item in items:
         if not isinstance(item, dict):
             continue
         question = item.get("question")
