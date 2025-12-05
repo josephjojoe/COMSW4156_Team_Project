@@ -1,3 +1,44 @@
+/**
+ * Unit tests for the Queue class.
+ * Note: AI assistance was used to review test coverage and suggest additional edge cases.
+ *
+ * <p>EQUIVALENCE PARTITIONS:
+ *
+ * <p>Queue(String name):
+ * - Valid: non-null, non-empty string -> testQueueEmptyInitialization
+ * - Invalid: null name -> testQueueConstructorWithNullName
+ * - Invalid: empty string -> testQueueConstructorWithEmptyName
+ *
+ * <p>Queue(String name, UUID id):
+ * - Valid: non-null name and id -> testQueueConstructorWithUuid
+ * - Invalid: null id -> testQueueConstructorWithNullUuid
+ *
+ * <p>enqueue(Task):
+ * - Valid: non-null task -> testEnqueueTask
+ * - Invalid: null task -> testEnqueueNullTask
+ *
+ * <p>dequeue():
+ * - Valid: non-empty queue -> testDequeuePriorityOrder
+ * - Boundary: empty queue -> testDequeueEmptyQueue
+ *
+ * <p>addResult(Result):
+ * - Valid: result with valid taskId -> testAddResult
+ * - Invalid: null result -> testAddNullResult
+ * - Invalid: result with null taskId -> testAddResultWithNullTaskxId
+ *
+ * <p>getResult(UUID):
+ * - Valid: existing taskId -> testAddResult
+ * - Invalid: non-existent taskId -> testGetResultNonexistent
+ *
+ * <p>getAllTasks():
+ * - Valid: queue with tasks -> testGetAllTasks
+ * - Boundary: empty queue -> testGetAllTasksEmpty
+ *
+ * <p>getAllResults():
+ * - Valid: queue with results -> testGetAllResults
+ * - Boundary: empty queue -> testGetAllResultsEmpty
+ */
+
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -200,6 +241,66 @@ public class QueueUnitTests {
     assertTrue(second == t1 || second == t2);
   }
 
+  @Test
+  void testQueueConstructorWithNullName() {
+    Queue q = new Queue(null);
+    assertNotNull(q.getId());
+    assertEquals(null, q.getName());
+  }
 
+  @Test
+  void testQueueConstructorWithEmptyName() {
+    Queue q = new Queue("");
+    assertNotNull(q.getId());
+    assertEquals("", q.getName());
+  }
 
+  @Test
+  void testQueueConstructorWithUuid() {
+    UUID customId = UUID.randomUUID();
+    Queue q = new Queue("Test", customId);
+    assertEquals(customId, q.getId());
+    assertEquals("Test", q.getName());
+  }
+
+  @Test
+  void testQueueConstructorWithNullUuid() {
+    Queue q = new Queue("Test", null);
+    assertEquals(null, q.getId());
+    assertEquals("Test", q.getName());
+  }
+
+  @Test
+  void testGetAllTasks() {
+    Task t1 = new Task("A", 1);
+    Task t2 = new Task("B", 2);
+    queue.enqueue(t1);
+    queue.enqueue(t2);
+    assertEquals(2, queue.getAllTasks().size());
+  }
+
+  @Test
+  void testGetAllTasksEmpty() {
+    assertEquals(0, queue.getAllTasks().size());
+  }
+
+  @Test
+  void testGetAllResults() {
+    UUID id1 = UUID.randomUUID();
+    UUID id2 = UUID.randomUUID();
+    queue.addResult(new Result(id1, "out1", Result.ResultStatus.SUCCESS));
+    queue.addResult(new Result(id2, "out2", Result.ResultStatus.SUCCESS));
+    assertEquals(2, queue.getAllResults().size());
+  }
+
+  @Test
+  void testGetAllResultsEmpty() {
+    assertEquals(0, queue.getAllResults().size());
+  }
+
+  /** Tests that enqueue returns false when given a null task. */
+  @Test
+  void testEnqueueReturnsFalseForNullTask() {
+    assertFalse(queue.enqueue(null));
+  }
 }

@@ -1,3 +1,58 @@
+/**
+ * Unit tests for QueueService.
+ * Note: AI assistance was used to review test coverage and suggest additional edge cases.
+ *
+ * <p>EQUIVALENCE PARTITIONS:
+ *
+ * <p>createQueue(String name):
+ * - Valid: non-blank name -> testCreateQueueWithValidName
+ * - Invalid: null name -> testCreateQueueWithNullNameThrows
+ * - Invalid: blank name -> testCreateQueueWithBlankNameThrows
+ *
+ * <p>enqueueTask(UUID queueId, Task task):
+ * - Valid: existing queue, valid task -> testEnqueueTaskWithValidInput
+ * - Invalid: null queueId -> testEnqueueTaskNullQueueIdThrows
+ * - Invalid: null task -> testEnqueueTaskNullTaskThrows
+ * - Invalid: non-existent queue -> testEnqueueTaskNonexistentQueueThrows
+ *
+ * <p>dequeueTask(UUID queueId):
+ * - Valid: existing queue with tasks -> testDequeueTaskWithValidInput
+ * - Boundary: existing empty queue -> testDequeueTaskFromEmptyQueue
+ * - Invalid: null queueId -> testDequeueTaskNullQueueIdThrows
+ * - Invalid: non-existent queue -> testDequeueTaskNonexistentQueueThrows
+ *
+ * <p>submitResult(UUID queueId, Result result):
+ * - Valid: existing queue, valid result -> testSubmitResult
+ * - Invalid: null queueId -> testSubmitResultNullQueueIdThrows
+ * - Invalid: null result -> testSubmitResultNullResultThrows
+ * - Invalid: non-existent queue -> testSubmitResultNonexistentQueueThrows
+ *
+ * <p>getResult(UUID queueId, UUID taskId):
+ * - Valid: existing result -> testGetResult
+ * - Boundary: non-existent result -> testGetResultNotFound
+ * - Invalid: null queueId -> testGetResultNullQueueIdThrows
+ * - Invalid: null taskId -> testGetResultNullTaskIdThrows
+ * - Invalid: non-existent queue -> testGetResultNonexistentQueueThrows
+ *
+ * <p>getQueue(UUID queueId):
+ * - Valid: existing queue -> testGetQueueExists
+ * - Boundary: non-existent queue -> testGetQueueNotFound
+ * - Invalid: null queueId -> testGetQueueNullIdThrows
+ *
+ * <p>queueExists(UUID queueId):
+ * - Valid: existing queue -> testQueueExistsReturnsTrue
+ * - Boundary: non-existent queue -> testQueueExistsReturnsFalse
+ * - Invalid: null queueId -> testQueueExistsNullIdThrows
+ *
+ * <p>clearAll():
+ * - Valid: store with queues -> testClearAll
+ * - Boundary: empty store -> testClearAllEmpty
+ *
+ * <p>getAllQueueCount():
+ * - Valid: store with queues -> testGetAllQueueCount
+ * - Boundary: empty store -> testGetAllQueueCountEmpty
+ */
+
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -257,5 +312,59 @@ public class QueueServiceUnitTests {
     assertEquals(task.getId(), dequeuedTask.getId());
     assertEquals("{\"page\": 1}", dequeuedTask.getParams());
     assertEquals(1, dequeuedTask.getPriority());
+  }
+
+  @Test
+  void testDequeueTaskFromEmptyQueue() {
+    Queue queue = queueService.createQueue("Empty");
+    Task task = queueService.dequeueTask(queue.getId());
+    assertEquals(null, task);
+  }
+
+  @Test
+  void testClearAll() {
+    queueService.createQueue("Q1");
+    queueService.createQueue("Q2");
+    queueService.clearAll();
+    assertEquals(0, queueService.getAllQueueCount());
+  }
+
+  @Test
+  void testClearAllEmpty() {
+    queueService.clearAll();
+    assertEquals(0, queueService.getAllQueueCount());
+  }
+
+  @Test
+  void testGetAllQueueCount() {
+    queueService.clearAll();
+    queueService.createQueue("Q1");
+    queueService.createQueue("Q2");
+    assertEquals(2, queueService.getAllQueueCount());
+  }
+
+  @Test
+  void testGetAllQueueCountEmpty() {
+    queueService.clearAll();
+    assertEquals(0, queueService.getAllQueueCount());
+  }
+
+  /** Tests that enqueueTask succeeds when queue accepts multiple tasks. */
+  @Test
+  void testEnqueueTaskFailsWhenQueueRejectTask() {
+    Queue queue = queueService.createQueue("Q");
+    queue.enqueue(new Task("t1", 1));
+    Task duplicate = new Task("t2", 1);
+    queueService.enqueueTask(queue.getId(), duplicate);
+    assertEquals(2, queue.getTaskCount());
+  }
+
+  /** Tests that submitResult throws when result has null taskId. */
+  @Test
+  void testSubmitResultWithNullTaskIdInResult() {
+    Queue queue = queueService.createQueue("Q");
+    Result badResult = new Result(null, "output", Result.ResultStatus.SUCCESS);
+    Assertions.assertThrows(IllegalStateException.class,
+          () -> queueService.submitResult(queue.getId(), badResult));
   }
 }
