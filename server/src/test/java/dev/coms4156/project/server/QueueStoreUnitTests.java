@@ -1,3 +1,26 @@
+/**
+ * Unit tests for the QueueStore class.
+ * Note: AI assistance was used to review test coverage and suggest additional edge cases.
+ *
+ * <p>EQUIVALENCE PARTITIONS:
+ *
+ * <p>getInstance():
+ * - Valid: any call -> testSingletonInstance
+ *
+ * <p>createQueue(String name):
+ * - Valid: non-null name -> testCreateQueue
+ * - Atypical: null name -> testCreateQueueWithNullName
+ * - Atypical: empty name -> testCreateQueueWithEmptyName
+ *
+ * <p>clearAll():
+ * - Valid: store with queues -> testClearAll
+ * - Boundary: empty store -> testClearAllEmpty
+ *
+ * <p>getAllQueues():
+ * - Valid: store with queues -> testGetAllQueues
+ * - Boundary: empty store -> testGetAllQueuesEmpty
+ */
+
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,9 +54,9 @@ public class QueueStoreUnitTests {
   private QueueStore store;
 
   /**
-  * Before each test it resets the QueueStore state
-  * to nsures each test executes in a clean and isolated environment.
-  */
+   * Before each test it resets the QueueStore state
+   * to ensures each test executes in a clean and isolated environment.
+   */
   @BeforeEach
   void setUp() {
     store = QueueStore.getInstance();
@@ -43,6 +66,7 @@ public class QueueStoreUnitTests {
   /**
    * Clean up snapshot files after each test to ensure test isolation.
    */
+  @SuppressWarnings("ResultOfMethodCallIgnored")
   @AfterEach
   void tearDown() {
     store.clearAll();
@@ -52,8 +76,8 @@ public class QueueStoreUnitTests {
   }
 
   /**
-  * Verifies that multiple calls to getInstance() return the same object reference.
-  */
+   * Verifies that multiple calls to getInstance() return the same object reference.
+   */
   @Test
   public void testSingletonInstance() {
     QueueStore store1 = QueueStore.getInstance();
@@ -62,8 +86,8 @@ public class QueueStoreUnitTests {
   }
 
   /**
-  * Verifies that a new Queue can be created and retrieved successfully.
-  */
+   * Verifies that a new Queue can be created and retrieved successfully.
+   */
   @Test
   public void testCreateQueue() {
     Queue q1 = store.createQueue("Queue 1");

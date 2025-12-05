@@ -1,3 +1,18 @@
+/**
+ * Integration tests focusing only on Queue <-> Task interactions.
+ * These tests exercise the integration boundary where Queue manages, orders,
+ * and returns Task instances through enqueue and dequeue operations.
+ * Note: AI assistance was used to review test coverage and suggest additional edge cases.
+ *
+ * <p>EQUIVALENCE PARTITIONS:
+ *
+ * <p>Queue.enqueue(Task) + Queue.dequeue():
+ * - Valid: tasks with different priorities -> tasksAreDequeuedInCompareToOrder
+ * - Boundary: tasks with same priority ->
+ * tasksWithSamePriorityAreAllDequeuedButOrderIsNotGuaranteed
+ * - Valid: same task reference -> dequeueReturnsSameTaskReference
+ */
+
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
