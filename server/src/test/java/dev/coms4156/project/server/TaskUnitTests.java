@@ -1,9 +1,42 @@
+/**
+ * Unit tests for the Task class.
+ * Note: AI assistance was used to review test coverage and suggest additional edge cases.
+ *
+ * <p>EQUIVALENCE PARTITIONS:
+ *
+ * <p>Task(String params, int priority):
+ * - Valid: non-null params, any priority -> testTaskCreationSetsParams
+ * - Atypical: null params -> testTaskWithNullParams
+ * - Atypical: empty params -> testTaskWithEmptyParams
+ * - Boundary: priority=0 -> testCompareToWithZeroPriority
+ * - Boundary: negative priority -> testCompareToWithNegativePriority
+ *
+ * <p>Task(UUID id, String params, int priority, TaskStatus status):
+ * - Valid: all non-null values -> testEqualsSymmetric
+ * - Atypical: null id -> testTaskConstructorWithNullId
+ *
+ * <p>setStatus(TaskStatus):
+ * - Valid: all status values -> testAllStatusValues
+ * - Invalid: null status -> testSetStatusWithNull
+ *
+ * <p>compareTo(Task):
+ * - Valid: different priorities -> testCompareToWithDifferentPriorities
+ * - Boundary: equal priorities -> testCompareToWithEqualPriorities
+ * - Boundary: self-comparison -> testCompareToSelf
+ *
+ * <p>equals(Object):
+ * - Valid: same ID -> testEqualsSymmetric
+ * - Invalid: different IDs -> testEqualsWithDifferentIds
+ * - Invalid: null object -> testEqualsWithNull
+ * - Invalid: different type -> testEqualsWithDifferentType
+ */
+
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.coms4156.project.server.model.Task;
@@ -248,8 +281,7 @@ public class TaskUnitTests {
   @Test
   public void testTaskWithNullParams() {
     Task nullParamsTask = new Task(null, 1);
-    assertEquals(null, nullParamsTask.getParams(), 
-            "Task should accept null params");
+    assertNull(nullParamsTask.getParams(), "Task should accept null params");
   }
 
   /**
@@ -259,8 +291,7 @@ public class TaskUnitTests {
   @Test
   public void testSetStatusWithNull() {
     task.setStatus(null);
-    assertEquals(null, task.getStatus(), 
-            "Task should accept null status");
+    assertNull(task.getStatus(), "Task should accept null status");
   }
 
   /**
@@ -295,8 +326,7 @@ public class TaskUnitTests {
    */
   @Test
   public void testEqualsWithSameReference() {
-    assertTrue(task.equals(task), 
-            "Task should be equal to itself");
+    assertEquals(task, task, "Task should be equal to itself");
   }
 
   /**
@@ -313,8 +343,7 @@ public class TaskUnitTests {
   @Test
   public void testEqualsWithDifferentType() {
     String notAtask = "This is not a task";
-    assertFalse(task.equals(notAtask), 
-            "Task should not be equal to a String object");
+    assertNotEquals(notAtask, task, "Task should not be equal to a String object");
   }
 
   /**
@@ -325,9 +354,8 @@ public class TaskUnitTests {
   public void testEqualsWithSamePriorityDifferentIds() {
     Task task1 = new Task("params1", 5);
     Task task2 = new Task("params2", 5);
-    
-    assertFalse(task1.equals(task2), 
-            "Tasks with same priority but different IDs should not be equal");
+
+    assertNotEquals(task1, task2, "Tasks with same priority but different IDs should not be equal");
   }
 
   /**
@@ -337,9 +365,8 @@ public class TaskUnitTests {
   public void testEqualsWithDifferentIds() {
     Task task1 = new Task(testParams, 1);
     Task task2 = new Task(testParams, 1);
-    
-    assertFalse(task1.equals(task2), 
-            "Tasks with different IDs should not be equal");
+
+    assertNotEquals(task1, task2, "Tasks with different IDs should not be equal");
   }
 
   /**
@@ -380,4 +407,12 @@ public class TaskUnitTests {
             "Tasks with different IDs should have different hashCodes");
   }
 
+  /**
+   * Tests the task constructor with a null ID.
+   */
+  @Test
+  public void testTaskConstructorWithNullId() {
+    Task t = new Task(null, "params", 1, TaskStatus.PENDING);
+    assertNull(t.getId());
+  }
 }

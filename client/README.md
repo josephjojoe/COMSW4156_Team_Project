@@ -434,8 +434,6 @@ pytest tests/ -v
 
 Here's a complete example from start to finish:
 
-We used free gemini llm api for our test. Can also use mock if no api key available or out of credits. 
-
 ### Step 1: Start the Queue Service or if Service running on cloud then upate base_url in congig.yaml to cloud correct ip and skip to Step 2
 ```bash
 cd GroupProject/server

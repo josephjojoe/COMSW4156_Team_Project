@@ -49,7 +49,7 @@ class TestQueueClient(unittest.TestCase):
     @patch('requests.post')
     def test_enqueue_success(self, mock_post):
         """Test successful task enqueue."""
-        mock_post.return_value = Mock(status_code=200, json=lambda: {"taskId": self.task_id})
+        mock_post.return_value = Mock(status_code=200, json=lambda: {"id": self.task_id})
         task_id = self.client.enqueue_task(self.queue_id, {"test": "data"}, 1)
         self.assertEqual(task_id, self.task_id)
 

@@ -1,3 +1,21 @@
+/**
+ * Internal integration tests verifying the interaction between Queue and Result.
+ * These tests ensure that Queue's internal storage and lookup logic
+ * correctly handles Result objects without mocking either class.
+ * Note: AI assistance was used to review test coverage and suggest additional edge cases.
+ *
+ * <p>EQUIVALENCE PARTITIONS:
+ *
+ * <p>Queue.addResult(Result) + Queue.getResult(UUID):
+ * - Valid: valid result with taskId -> addAndRetrieveResultSuccessfully
+ * - Boundary: non-existent taskId -> getResultReturnsNullWhenNoResultExists
+ * - Invalid: null result -> addingNullResultFails
+ *
+ * <p>Queue.getResultCount():
+ * - Valid: multiple results added -> resultCountTracksInsertedResults
+ * - Boundary: duplicate taskId -> addingDuplicateResultOverwritesExistingResult
+ */
+
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
