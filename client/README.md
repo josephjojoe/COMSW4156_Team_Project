@@ -77,7 +77,7 @@ pip install -r requirements.txt
 Create or verify your `config.yaml` file using this template or edit current `config.yaml` file (Example config.yaml built for Anki already in repo):
 ```yaml
 queue_service:
-  base_url: "http://localhost:8080"
+  base_url: "http://localhost:8080" # Adjust to cloud ip as needed, default address connects to localhost:8080
 
 storage:
   pdf_dir: "storage/pdfs"
@@ -87,17 +87,17 @@ storage:
 
 llm:
   provider: "openai"  
-  api_key: ${OPENAI_API_KEY} 
+  api_key: ${OPENAI_API_KEY} # Adjust to api key as needed, default api_key in congig.yaml is null
   model: "mock-model"
   max_questions_per_page: 5
 
-worker:
+worker: # Adjust worker parameters as needed
   poll_interval: 2.0
   max_retries: 3
   retry_backoff: 2.0
 
 anki:
-  deck_name: "Quiz Deck"
+  deck_name: "Quiz Deck" # Change deck name as desired (csv file name will have a unique identifier string though)
   output_dir: "output"
 ```
 
@@ -252,6 +252,33 @@ Generating Anki CSV...
 Import this file into Anki to use your flashcards!
 ```
 
+### LLM Question Generation
+The client uses a pluggable LLMService to turn each PDF page image into quiz-style question/answer pairs.
+Providers
+**OpenRouter (default)**: Calls the OpenRouter chat completions API using the model configured in config.yaml (e.g., google/gemma-3-27b-it:free).
+**Mock**: A deterministic, local provider that returns fake but structured Q&A pairs for testing and demos without any external calls.
+#### How it works (OpenRouter path)
+The worker reads the page image path from each task and base64‑encodes the image.
+LLMService builds a vision-capable chat request with:
+- A system message describing the quiz style.
+- A user message that includes both text instructions and the page image (as data:image/png;base64,...).
+#### The LLM is instructed to respond only with a JSON array of objects like:
+[{ "question": "...", "answer": "..." }, ...]
+- The helper _parse_qa_pairs_from_json validates and normalizes this JSON into a list of {question, answer} dicts, which the worker writes to per-page result JSON files.
+- The aggregator later reads those result files and is completely agnostic to which provider (OpenRouter vs mock) was used.
+#### API key & fallback behavior
+The OpenRouter API key is provided via environment variable and picked up by config.yaml:
+```
+api_key: ${OPENROUTER_API_KEY}
+```
+#### Set in your shell before running the client:
+```
+export OPENROUTER_API_KEY="sk-or-your-api-key"
+```
+If the API key is missing, invalid (401/403), or the HTTP request fails, LLMService logs the issue and automatically falls back to the mock provider so the rest of the pipeline still runs.
+
+
+
 ### Operating Administrator 
 
 The administrator was not a part of the original client plan was added to handle new API entry points of clearing queues, and also to allow the user to check current queue status. 
@@ -318,7 +345,7 @@ Time  Worker 1              Worker 2              Worker 3              Queue St
 
 ### How the Service Tells Clients Apart
 
-The queue service distinguishes between client instances through HTTP request context rather than persistent identifiers. Each request includes source IP address, port, and timestamp, allowing the service to track individual HTTP calls. However, the service does not maintain worker sessions or registrations—it only tracks task ownership at the moment of dequeue. Once a worker receives a task via `GET /queue/{id}/task`, that task is "owned" by requiring the correct task ID when submitting results. Multiple workers on the same machine are distinguished by their source ports (e.g., `127.0.0.1:54321`, `127.0.0.1:54322`), but the service treats each new HTTP request independently without remembering previous interactions from the same worker. This stateless design eliminates the need for worker registration, enables dynamic scaling, and simplifies fault tolerance—workers can crash and restart without cleanup.
+The service supports multiple simultaneous client instances through atomic operations and UUID-based correlation rather than explicit client identity tracking. When multiple workers call GET /queue/{id}/task concurrently, Java's PriorityBlockingQueue.poll() ensures each request atomically receives a different task so no two clients ever get the same task. Results are correlated to tasks by UUID: when a worker submits via POST /queue/{id}/result, it includes the task's UUID, and the service stores the result keyed by that UUID regardless of who submitted it. Different jobs are isolated by queue UUID—clients can only access queues whose UUID they know. This design means the service doesn't track "which client has which task" instead it simply guarantees that each GET /task returns a unique task, and each result is matched to its task by UUID. The benefits are simplicity (no registration/sessions), dynamic scaling (add workers anytime), and fault tolerance (crashed workers leave no orphaned state).
 
 ## Configuration
 
@@ -327,7 +354,7 @@ The `config.yaml` file controls all client behavior:
 ### Queue Service Section
 ```yaml
 queue_service:
-  base_url: "http://localhost:8080"  # URL of your Java service
+  base_url: "http://localhost:8080"  # URL of your Java service. switch to api url if server on cloud. Current config.yaml set to cloud
 ```
 
 ### Storage Section
@@ -394,15 +421,25 @@ anki:
   output_dir: "output"     # Where to save CSV files
 ```
 
-## Demo Walkthrough
+## How to run Unit tests for Client
+
+Run all client tests:
+```bash
+cd client
+pytest tests/ -v
+```
+
+## Demo Walkthrough Checklist
 
 Here's a complete example from start to finish:
 
-### Step 1: Start the Queue Service
+### Step 1: Start the Queue Service or if Service running on cloud then upate base_url in congig.yaml to cloud correct ip and skip to Step 2
 ```bash
 cd GroupProject/server
 mvn clean spring-boot:run
 ```
+If using API KEY MAKE SURE TO EXPORT 
+export OPENROUTER_API_KEY=abc
 
 Wait for:
 ```
@@ -507,6 +544,10 @@ rm -rf storage/metadata/*
 rm -rf storage/results/*
 ```
 
+## Run two clients by running producer twice and getting two queue ids. Then ran a worker for one and not the other to get a incomplete queue and completed queue. 
+
+![2 Client different queues](../images/two_client_queues.jpeg)
+SHOWING INCOMPLETE AND COMPLETE QUEUE AS EXPECTED
 
 ## Troubleshooting
 
@@ -661,9 +702,8 @@ Poll queue status endpoint until all expected tasks are complete (pendingTaskCou
 
 - **Polling:** Wait 2-5 seconds between polls when queue is empty
 - **Timeouts:** Set 30-second HTTP timeouts to prevent hanging
-- **Error Handling:** Implement exponential backoff for transient failures
+- **Error Handling:** Implement backoff for transient failures
 - **JSON Encoding:** Always JSON-encode task parameters as strings, not objects
-- **Connection Pooling:** Reuse HTTP connections for better performance
 - **Graceful Shutdown:** Handle SIGINT/SIGTERM to stop workers cleanly
 
 ### Common Pitfalls to Avoid

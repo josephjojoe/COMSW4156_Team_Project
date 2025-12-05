@@ -100,6 +100,36 @@ class PDFProducer:
             raise RuntimeError(f"Failed to convert PDF to images: {e}")
         
         print(f"Generated {len(image_paths)} page images")
+
+        # Step 4.5: Validate conversion was complete and all images exist
+        print(f"Validating image files...")
+        
+        # Check 1: Verify we got the expected number of images
+        if len(image_paths) != total_pages:
+            raise RuntimeError(
+                f"PDF conversion incomplete: expected {total_pages} pages, "
+                f"but only {len(image_paths)} images were created. "
+                f"The PDF may be corrupted or conversion failed partway through."
+            )
+        
+        # Check 2: Verify each image file actually exists
+        missing_pages = []
+        for page_num, page_path in enumerate(image_paths, start=1):
+            if not Path(page_path).exists():
+                missing_pages.append((page_num, page_path))
+        
+        if missing_pages:
+            error_msg = f"Image validation failed: {len(missing_pages)} page(s) missing:\n"
+            # Show first 5 missing pages
+            for page_num, page_path in missing_pages[:5]:
+                error_msg += f"  - Page {page_num}: {page_path}\n"
+            if len(missing_pages) > 5:
+                error_msg += f"  ... and {len(missing_pages) - 5} more missing pages\n"
+            error_msg += "\nPDF conversion failed. No tasks will be submitted."
+            raise RuntimeError(error_msg)
+        
+        print(f" All {len(image_paths)} images validated successfully")
+        
         
         # Step 5: Submit tasks to queue
         print(f"Submitting tasks to queue...")
@@ -129,8 +159,11 @@ class PDFProducer:
                     print(f"  Submitted {page_num}/{total_pages} tasks")
                     
             except Exception as e:
-                print(f"Warning: Failed to submit task for page {page_num}: {e}", 
-                      file=sys.stderr)
+                # Task submission failure is critical after validation passes
+                raise RuntimeError(
+                    f"Failed to submit task for page {page_num} after validation: {e}. "
+                    f"Successfully submitted {len(task_ids)}/{total_pages} tasks before failure."
+                ) from e
         
         print(f"✓ Submitted {len(task_ids)} tasks successfully")
         
