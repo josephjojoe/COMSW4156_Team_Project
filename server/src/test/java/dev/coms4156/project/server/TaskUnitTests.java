@@ -1,3 +1,36 @@
+/**
+ * Unit tests for the Task class.
+ * Note: AI assistance was used to review test coverage and suggest additional edge cases.
+ *
+ * <p>EQUIVALENCE PARTITIONS:
+ *
+ * <p>Task(String params, int priority):
+ * - Valid: non-null params, any priority -> testTaskCreationSetsParams
+ * - Atypical: null params -> testTaskWithNullParams
+ * - Atypical: empty params -> testTaskWithEmptyParams
+ * - Boundary: priority=0 -> testCompareToWithZeroPriority
+ * - Boundary: negative priority -> testCompareToWithNegativePriority
+ *
+ * <p>Task(UUID id, String params, int priority, TaskStatus status):
+ * - Valid: all non-null values -> testEqualsSymmetric
+ * - Atypical: null id -> testTaskConstructorWithNullId
+ *
+ * <p>setStatus(TaskStatus):
+ * - Valid: all status values -> testAllStatusValues
+ * - Invalid: null status -> testSetStatusWithNull
+ *
+ * <p>compareTo(Task):
+ * - Valid: different priorities -> testCompareToWithDifferentPriorities
+ * - Boundary: equal priorities -> testCompareToWithEqualPriorities
+ * - Boundary: self-comparison -> testCompareToSelf
+ *
+ * <p>equals(Object):
+ * - Valid: same ID -> testEqualsSymmetric
+ * - Invalid: different IDs -> testEqualsWithDifferentIds
+ * - Invalid: null object -> testEqualsWithNull
+ * - Invalid: different type -> testEqualsWithDifferentType
+ */
+
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -380,4 +413,9 @@ public class TaskUnitTests {
             "Tasks with different IDs should have different hashCodes");
   }
 
+  @Test
+  public void testTaskConstructorWithNullId() {
+    Task t = new Task(null, "params", 1, TaskStatus.PENDING);
+    assertEquals(null, t.getId());
+  }
 }

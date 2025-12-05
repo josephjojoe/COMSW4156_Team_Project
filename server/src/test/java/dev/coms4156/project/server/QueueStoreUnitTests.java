@@ -1,3 +1,26 @@
+/**
+ * Unit tests for the QueueStore class.
+ * Note: AI assistance was used to review test coverage and suggest additional edge cases.
+ *
+ * <p>EQUIVALENCE PARTITIONS:
+ *
+ * <p>getInstance():
+ * - Valid: any call -> testSingletonInstance
+ *
+ * <p>createQueue(String name):
+ * - Valid: non-null name -> testCreateQueue
+ * - Atypical: null name -> testCreateQueueWithNullName
+ * - Atypical: empty name -> testCreateQueueWithEmptyName
+ *
+ * <p>clearAll():
+ * - Valid: store with queues -> testClearAll
+ * - Boundary: empty store -> testClearAllEmpty
+ *
+ * <p>getAllQueues():
+ * - Valid: store with queues -> testGetAllQueues
+ * - Boundary: empty store -> testGetAllQueuesEmpty
+ */
+
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -88,6 +111,52 @@ public class QueueStoreUnitTests {
   @Test
   public void testRemoveQueueFailure() {
     assertFalse(store.removeQueue(UUID.randomUUID()));
+  }
+
+  @Test
+  public void testCreateQueueWithNullName() {
+    Queue q = store.createQueue(null);
+    assertNotNull(q);
+    assertEquals(null, q.getName());
+  }
+
+  @Test
+  public void testCreateQueueWithEmptyName() {
+    Queue q = store.createQueue("");
+    assertNotNull(q);
+    assertEquals("", q.getName());
+  }
+
+  @Test
+  public void testGetQueueNonExistent() {
+    Queue q = store.getQueue(UUID.randomUUID());
+    assertEquals(null, q);
+  }
+
+  @Test
+  public void testClearAll() {
+    store.createQueue("Q1");
+    store.createQueue("Q2");
+    store.clearAll();
+    assertEquals(0, store.getAllQueues().size());
+  }
+
+  @Test
+  public void testClearAllEmpty() {
+    store.clearAll();
+    assertEquals(0, store.getAllQueues().size());
+  }
+
+  @Test
+  public void testGetAllQueues() {
+    store.createQueue("Q1");
+    store.createQueue("Q2");
+    assertEquals(2, store.getAllQueues().size());
+  }
+
+  @Test
+  public void testGetAllQueuesEmpty() {
+    assertEquals(0, store.getAllQueues().size());
   }
 
   // ========================

@@ -1,6 +1,52 @@
+/**
+ * Integration tests for the QueueController REST endpoints.
+ * Tests the complete flow of queue operations through HTTP requests.
+ * Note: AI assistance was used to review test coverage and suggest additional edge cases.
+ *
+ * <p>EQUIVALENCE PARTITIONS:
+ *
+ * <p>POST /queue:
+ * - Valid: non-blank name -> fullFlowCreateEnqueueDequeueSubmitGetResult
+ * - Invalid: blank name -> createQueueBlankNameReturnsBadRequest
+ * - Atypical: null name -> createQueueNullNameReturnsBadRequest
+ * - Atypical: very long name -> createQueueVeryLongNameHandledCorrectly
+ *
+ * <p>POST /queue/{queueId}/task:
+ * - Valid: existing queue, valid params -> fullFlowCreateEnqueueDequeueSubmitGetResult
+ * - Invalid: non-existent queue -> enqueueTaskNonexistentQueueReturnsNotFound
+ * - Invalid: malformed UUID -> enqueueTaskMalformedUuidReturnsBadRequest
+ * - Atypical: very high priority -> enqueueTaskVeryHighPriorityHandledCorrectly
+ *
+ * <p>GET /queue/{queueId}/task:
+ * - Valid: existing queue with tasks -> fullFlowCreateEnqueueDequeueSubmitGetResult
+ * - Boundary: empty queue -> dequeueEmptyQueueReturnsNoContent
+ * - Invalid: non-existent queue -> dequeueTaskNonexistentQueueReturnsNotFound
+ * - Invalid: malformed UUID -> dequeueTaskMalformedUuidReturnsBadRequest
+ *
+ * <p>POST /queue/{queueId}/result:
+ * - Valid: existing queue, valid result -> fullFlowCreateEnqueueDequeueSubmitGetResult
+ * - Invalid: non-existent queue -> submitResultNonexistentQueueReturnsNotFound
+ * - Invalid: invalid status enum -> submitResultInvalidEnumReturnsBadRequest
+ * - Atypical: null output -> submitResultNullOutputHandledCorrectly
+ *
+ * <p>GET /queue/{queueId}/result/{taskId}:
+ * - Valid: existing result -> fullFlowCreateEnqueueDequeueSubmitGetResult
+ * - Boundary: non-existent result -> getResultNonexistentQueueReturnsNotFound
+ * - Invalid: malformed UUID -> getResultMalformedUuidReturnsBadRequest
+ *
+ * <p>GET /queue/{queueId}/status:
+ * - Valid: existing queue -> getQueueStatusEmptyQueueReturnsZeroCounts
+ * - Invalid: non-existent queue -> getQueueStatusNonexistentQueueReturnsNotFound
+ * - Invalid: malformed UUID -> getQueueStatusMalformedUuidReturnsBadRequest
+ *
+ * <p>DELETE /admin/clear:
+ * - Valid: any state -> (tested in demo/manual)
+ */
+
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -658,5 +704,19 @@ public class QueueControllerIntegrationTests {
           "{\"taskId\":\"%s\",\"output\":null,\"status\":\"SUCCESS\"}", taskId);
     mockMvc.perform(post("/queue/" + queueId + "/result").contentType(MediaType.APPLICATION_JSON)
           .content(submitPayload)).andExpect(status().isCreated());
+  }
+
+  /** Tests that clearAllQueues returns the correct count of cleared queues. */
+  @Test
+  void testClearAllQueuesReturnsCorrectCount() throws Exception {
+    mockMvc.perform(delete("/queue/admin/clear")).andExpect(status().isOk());
+    mockMvc.perform(post("/queue").contentType(MediaType.APPLICATION_JSON)
+          .content("{\"name\":\"Q1\"}")).andExpect(status().isCreated());
+    mockMvc.perform(post("/queue").contentType(MediaType.APPLICATION_JSON)
+          .content("{\"name\":\"Q2\"}")).andExpect(status().isCreated());
+    mockMvc.perform(delete("/queue/admin/clear"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.message").exists())
+          .andExpect(jsonPath("$.queuesCleared").value(2));
   }
 }

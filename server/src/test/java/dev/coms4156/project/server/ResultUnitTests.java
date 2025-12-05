@@ -1,3 +1,43 @@
+/**
+ * Unit tests for the Result class.
+ * Tests result creation, field access, timestamp generation,
+ * and string representation.
+ * Note: AI assistance was used to review test coverage and suggest additional edge cases.
+ *
+ * <p>EQUIVALENCE PARTITIONS:
+ *
+ * <p>Result(UUID taskId, String output, ResultStatus status):
+ * - Valid: non-null taskId, non-empty output, SUCCESS status -> testResultCreationSetsSuccessStatus
+ * - Valid: non-null taskId, non-empty output, FAILURE status -> testResultCreationSetsFailureStatus
+ * - Boundary: empty output -> testResultWithEmptyOutput
+ * - Atypical: large output -> testResultWithLargeOutput
+ * - Atypical: JSON output -> testResultWithJsonOutput
+ * - Invalid: null taskId -> testResultWithNullTaskId
+ * - Invalid: null output -> testResultWithNullOutput
+ * - Invalid: null status -> testResultWithNullStatus
+ *
+ * <p>getTaskId():
+ * - Valid: result with valid taskId -> testGetTaskId
+ * - Boundary: consistency check -> testGetTaskIdConsistency
+ *
+ * <p>getOutput():
+ * - Valid: result with valid output -> testGetOutput
+ *
+ * <p>getStatus():
+ * - Valid: SUCCESS status -> testGetStatus
+ * - Valid: FAILURE status -> testGetStatus
+ *
+ * <p>getTimestamp():
+ * - Valid: timestamp generated -> testResultCreationGeneratesTimestamp
+ * - Boundary: timestamp recency -> testTimestampIsRecent
+ * - Boundary: timestamp uniqueness -> testTimestampsAreUnique
+ *
+ * <p>toString():
+ * - Valid: contains all fields -> testToString
+ * - Valid: SUCCESS status representation -> testToStringWithSuccessStatus
+ * - Valid: FAILURE status representation -> testToStringWithFailureStatus
+ */
+
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -287,5 +327,25 @@ public class ResultUnitTests {
     
     assertEquals(task1.getId(), result1.getTaskId());
     assertEquals(task2.getId(), result2.getTaskId());
+  }
+
+  @Test
+  public void testResultWithNullTaskId() {
+    Result r = new Result(null, "output", ResultStatus.SUCCESS);
+    assertEquals(null, r.getTaskId());
+  }
+
+  @Test
+  public void testResultWithNullOutput() {
+    UUID id = UUID.randomUUID();
+    Result r = new Result(id, null, ResultStatus.SUCCESS);
+    assertEquals(null, r.getOutput());
+  }
+
+  @Test
+  public void testResultWithNullStatus() {
+    UUID id = UUID.randomUUID();
+    Result r = new Result(id, "output", null);
+    assertEquals(null, r.getStatus());
   }
 }
