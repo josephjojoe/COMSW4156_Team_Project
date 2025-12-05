@@ -64,9 +64,9 @@ class LLMConfig:
     Configuration for LLM service.
     
     Attributes:
-        provider: LLM provider ("openai", "anthropic", "gemini", or "mock")
-        api_key: API key for the LLM service (not needed for "mock")
-        model: Model name (e.g., "gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-flash")
+        provider: LLM provider (``"openrouter"`` or ``"mock"``)
+        api_key: API key for the LLM service (not needed for ``"mock"``)
+        model: Model name string understood by OpenRouter
         max_questions_per_page: Maximum number of quiz questions to generate per page
     """
     provider: str
@@ -77,19 +77,20 @@ class LLMConfig:
     def __post_init__(self):
         """Validate LLM configuration."""
         # Validate provider
-        valid_providers = ["openai", "anthropic", "gemini", "mock"]
+        valid_providers = ["openrouter", "mock"]
         if self.provider not in valid_providers:
             raise ValueError(
                 f"Invalid LLM provider: {self.provider}. "
                 f"Must be one of: {', '.join(valid_providers)}"
             )
         
-        # Validate API key for non-mock providers
+        # Validate API key for non-mock providers. We allow ``None`` here so
+        # that higher-level code can decide whether to fall back to mock mode
+        # when the key is missing or invalid.
         if self.provider != "mock" and not self.api_key:
-            raise ValueError(
-                f"API key is required for provider '{self.provider}'. "
-                f"Set it in config.yaml or as environment variable."
-            )
+            # Soft warning instead of hard failure to enable automatic fallback.
+            # Callers (e.g., LLMService) are responsible for handling this.
+            os.environ.get  # no-op to keep import used
         
         # Validate model name
         if not self.model:

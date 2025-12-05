@@ -4,15 +4,12 @@ LLM Service Module.
 This module provides a small, testable wrapper around large language model
 providers for generating quiz questions from textbook page images.
 
-Current implementation
-----------------------
+Providers
+---------
 
-For this iteration we only support a **mock provider**. The goal is to allow
-end‑to‑end development and testing of the PDF → worker → aggregator pipeline
-without requiring real API keys or incurring any LLM costs.
-
-The class is intentionally designed so that real providers (OpenAI/Anthropic)
-can be added later without changing the public interface.
+- ``openrouter`` – default provider backed by the OpenRouter API.
+- ``mock`` – deterministic, local mock used for testing and as a safe fallback
+  when the OpenRouter API key is missing or invalid.
 """
 
 from __future__ import annotations
@@ -23,6 +20,8 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +40,9 @@ class LLMServiceConfig:
     isolation during testing.
     """
 
-    provider: str = "mock"
+    provider: str = "openrouter"
     api_key: str | None = None
-    model: str = "mock-model"
+    model: str = "openai/gpt-4o-mini"
     max_questions: int = 3
 
 
@@ -71,20 +70,24 @@ class LLMService:
 
     def __init__(
         self,
-        provider: str = "mock",
+        provider: str = "openrouter",
         api_key: str | None = None,
-        model: str = "mock-model",
+        model: str = "openai/gpt-4o-mini",
         max_questions: int = 3,
     ) -> None:
         """
         Initialize the LLM service.
 
         Args:
-            provider: Which provider to use. For now only ``\"mock\"`` is
-                supported. Future values may include ``\"openai\"`` or
-                ``\"anthropic\"``.
-            api_key: API key for the provider. Ignored for ``\"mock\"``.
-            model: Model name to use (provider specific). Ignored for mock.
+            provider: Which provider to use. Supported values:
+
+                - ``"openrouter"`` (default)
+                - ``"mock"``
+
+            api_key: API key for the provider. Required for ``"openrouter"``;
+                ignored for ``"mock"``. If the OpenRouter key is missing or
+                invalid the service will automatically fall back to mock mode.
+            model: Model name to use (provider specific).
             max_questions: Maximum number of questions to generate per page.
 
         Raises:
@@ -95,12 +98,12 @@ class LLMService:
         self.model = model
         self.max_questions = max(1, int(max_questions))
 
-        if self.provider not in {"mock"}:
-            # We deliberately fail fast here so that misconfiguration is
-            # obvious and does not silently fall back to a different provider.
+        if self.provider not in {"openrouter", "mock"}:
+            # Fail fast so that misconfiguration is obvious and does not
+            # silently fall back to a different provider.
             raise ValueError(
                 f"Unsupported provider '{provider}'. "
-                "For this iteration only 'mock' is supported."
+                "Supported providers are: 'openrouter', 'mock'."
             )
 
         logger.debug(
@@ -149,9 +152,10 @@ class LLMService:
 
             if self.provider == "mock":
                 return self._call_mock(image_b64, prompt, page_num)
+            if self.provider == "openrouter":
+                return self._call_openrouter(image_b64, prompt, page_num)
 
-            # Unreachable for now because we validate provider in __init__,
-            # but kept for forward compatibility.
+            # Defensive: __init__ should already have validated provider.
             raise LLMServiceError(f"Unsupported provider at runtime: {self.provider}")
         except LLMServiceError:
             # Bubble up our own error type unchanged.
@@ -241,6 +245,130 @@ class LLMService:
             "Mock LLM generated %d questions for page %d", len(questions), page_num
         )
         return questions
+
+    def _call_openrouter(
+        self,
+        image_b64: str,
+        prompt: str,
+        page_num: int,
+    ) -> List[Dict[str, str]]:
+        """
+        Call the OpenRouter chat completions API to generate Q&A pairs.
+
+        Behavior:
+            - If no API key is configured, logs a warning and falls back to
+              :meth:`_call_mock`.
+            - If the API key is invalid (401/403) or the HTTP request fails,
+              logs an error and falls back to :meth:`_call_mock`.
+            - For other HTTP errors or unexpected response formats, raises
+              :class:`LLMServiceError`.
+        """
+        if not self.api_key:
+            logger.warning(
+                "No OpenRouter API key configured; falling back to mock provider."
+            )
+            return self._call_mock(image_b64, prompt, page_num)
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            # These headers are recommended by OpenRouter for attribution,
+            # but they are not strictly required for correctness.
+            "HTTP-Referer": "http://localhost",
+            "X-Title": "PDF Quiz Generator",
+        }
+
+        # Compose a chat-style request. We instruct the model to return ONLY a
+        # JSON array of {question, answer} objects so that the parsing helper
+        # can be reused.
+        system_message = (
+            "You are a helpful teaching assistant generating flashcard-style quiz "
+            "questions from textbook pages. "
+            "Return ONLY a JSON array of objects, each with 'question' and "
+            "'answer' string fields. Do not include any extra commentary."
+        )
+        user_instructions = (
+            f"Generate up to {self.max_questions} concise question/answer pairs "
+            f"based on this textbook page (page {page_num}). "
+            "Focus on key concepts, definitions, and how they are applied. "
+            "Again, respond ONLY with JSON."
+        )
+
+        messages = [
+            {"role": "system", "content": system_message},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": user_instructions},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_b64}",
+                        },
+                    },
+                ],
+            },
+        ]
+
+        payload = {
+            "model": self.model or "openai/gpt-4o-mini",
+            "messages": messages,
+        }
+
+        try:
+            response = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=60,
+            )
+        except requests.RequestException as exc:  # pragma: no cover - network
+            logger.error(
+                "OpenRouter request failed (%s); falling back to mock provider.", exc
+            )
+            return self._call_mock(image_b64, prompt, page_num)
+
+        if response.status_code in (401, 403):
+            logger.error(
+                "OpenRouter authentication failed with status %s; "
+                "falling back to mock provider.",
+                response.status_code,
+            )
+            return self._call_mock(image_b64, prompt, page_num)
+
+        if not response.ok:
+            # For non-auth HTTP errors we surface an explicit error so that
+            # calling code can decide how to handle it.
+            raise LLMServiceError(
+                f"OpenRouter API error: {response.status_code} {response.text[:200]}"
+            )
+
+        try:
+            data = response.json()
+        except ValueError as exc:  # pragma: no cover - defensive
+            raise LLMServiceError(
+                f"OpenRouter returned non-JSON response: {exc}"
+            ) from exc
+
+        try:
+            content = data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise LLMServiceError(
+                f"Unexpected OpenRouter response structure: {exc}"
+            ) from exc
+
+        # Depending on the model, content may be a string or a list of parts.
+        if isinstance(content, list):
+            text_parts = []
+            for part in content:
+                if isinstance(part, dict) and part.get("type") == "text":
+                    text_parts.append(part.get("text", ""))
+            content_text = "\n".join(text_parts)
+        else:
+            content_text = str(content)
+
+        return _parse_qa_pairs_from_json(content_text)
 
 
 def _parse_qa_pairs_from_json(text: str) -> List[Dict[str, str]]:
