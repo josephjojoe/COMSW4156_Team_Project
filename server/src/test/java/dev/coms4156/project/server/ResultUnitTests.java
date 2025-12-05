@@ -40,10 +40,6 @@
 
 package dev.coms4156.project.server;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import dev.coms4156.project.server.model.Result;
 import dev.coms4156.project.server.model.Result.ResultStatus;
 import dev.coms4156.project.server.model.Task;
@@ -51,6 +47,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the Result class.
@@ -247,9 +245,7 @@ public class ResultUnitTests {
   @Test
   public void testResultWithLargeOutput() {
     StringBuilder largeOutput = new StringBuilder();
-    for (int i = 0; i < 1000; i++) {
-      largeOutput.append("data_");
-    }
+    largeOutput.append("data_".repeat(1000));
     
     Result largeResult = new Result(testTaskId, largeOutput.toString(), 
             ResultStatus.SUCCESS);
@@ -329,23 +325,32 @@ public class ResultUnitTests {
     assertEquals(task2.getId(), result2.getTaskId());
   }
 
+  /**
+   * Tests the result when there's a null task ID.
+   */
   @Test
   public void testResultWithNullTaskId() {
     Result r = new Result(null, "output", ResultStatus.SUCCESS);
-    assertEquals(null, r.getTaskId());
+    assertNull(r.getTaskId());
   }
 
+  /**
+   * Tests the result when there's a null output.
+   */
   @Test
   public void testResultWithNullOutput() {
     UUID id = UUID.randomUUID();
     Result r = new Result(id, null, ResultStatus.SUCCESS);
-    assertEquals(null, r.getOutput());
+    assertNull(r.getOutput());
   }
 
+  /**
+   * Tests the result when there's a null status.
+   */
   @Test
   public void testResultWithNullStatus() {
     UUID id = UUID.randomUUID();
     Result r = new Result(id, "output", null);
-    assertEquals(null, r.getStatus());
+    assertNull(r.getStatus());
   }
 }

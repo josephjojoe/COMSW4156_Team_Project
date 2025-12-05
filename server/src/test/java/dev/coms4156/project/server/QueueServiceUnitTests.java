@@ -55,10 +55,6 @@
 
 package dev.coms4156.project.server;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import dev.coms4156.project.server.model.Queue;
 import dev.coms4156.project.server.model.Result;
 import dev.coms4156.project.server.model.Result.ResultStatus;
@@ -69,6 +65,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for QueueService.
@@ -154,7 +152,7 @@ public class QueueServiceUnitTests {
   void testCreateQueueWithNullNameThrows() {
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.createQueue((String) null)
+          () -> this.queueService.createQueue(null)
     );
   }
 
@@ -170,7 +168,7 @@ public class QueueServiceUnitTests {
   void testGetQueueNullIdThrows() {
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.getQueue((UUID) null)
+          () -> this.queueService.getQueue( null)
     );
   }
 
@@ -178,7 +176,7 @@ public class QueueServiceUnitTests {
   void testQueueExistsNullIdThrows() {
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.queueExists((UUID) null)
+          () -> this.queueService.queueExists( null)
     );
   }
 
@@ -187,7 +185,7 @@ public class QueueServiceUnitTests {
     Task task = new Task("p", 1);
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.enqueueTask((UUID) null, task)
+          () -> this.queueService.enqueueTask( null, task)
     );
   }
 
@@ -196,7 +194,7 @@ public class QueueServiceUnitTests {
     UUID randomId = UUID.randomUUID();
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.enqueueTask(randomId, (Task) null)
+          () -> this.queueService.enqueueTask(randomId,  null)
     );
   }
 
@@ -214,7 +212,7 @@ public class QueueServiceUnitTests {
   void testDequeueTaskNullQueueIdThrows() {
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.dequeueTask((UUID) null)
+          () -> this.queueService.dequeueTask( null)
     );
   }
 
@@ -236,7 +234,7 @@ public class QueueServiceUnitTests {
     );
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.submitResult((UUID) null, result)
+          () -> this.queueService.submitResult( null, result)
     );
   }
 
@@ -245,10 +243,13 @@ public class QueueServiceUnitTests {
     UUID randomId = UUID.randomUUID();
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.submitResult(randomId, (Result) null)
+          () -> this.queueService.submitResult(randomId,  null)
     );
   }
 
+  /**
+   * Tests submitting a reuslt with a nonexistent queue.
+   */
   @Test
   void testSubmitResultNonexistentQueueThrows() {
     UUID randomId = UUID.randomUUID();
@@ -263,24 +264,33 @@ public class QueueServiceUnitTests {
     );
   }
 
+  /**
+   * Tests getting a result with a null queue ID.
+   */
   @Test
   void testGetResultNullQueueIdThrows() {
     UUID taskId = UUID.randomUUID();
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.getResult((UUID) null, taskId)
+          () -> this.queueService.getResult( null, taskId)
     );
   }
 
+  /**
+   * Tests getting a result with a null task ID.
+   */
   @Test
   void testGetResultNullTaskIdThrows() {
     UUID randomId = UUID.randomUUID();
     Assertions.assertThrows(
           IllegalArgumentException.class,
-          () -> this.queueService.getResult(randomId, (UUID) null)
+          () -> this.queueService.getResult(randomId,  null)
     );
   }
 
+  /**
+   * Tests getResult with a nonexistent queue.
+   */
   @Test
   void testGetResultNonexistentQueueThrows() {
     UUID randomId = UUID.randomUUID();
@@ -291,6 +301,9 @@ public class QueueServiceUnitTests {
     );
   }
 
+  /**
+   * Tests enqueueing a task with a valid input.
+   */
   @Test
   public void testEnqueueTaskWithValidInput() {
     Queue queue = queueService.createQueue("test-queue");
@@ -301,6 +314,9 @@ public class QueueServiceUnitTests {
     assertEquals(1, queue.getTaskCount());
   }
 
+  /**
+   * Tests dequeuing a task with a valid input.
+   */
   @Test
   public void testDequeueTaskWithValidInput() {
     Queue queue = queueService.createQueue("test-queue");
@@ -314,13 +330,19 @@ public class QueueServiceUnitTests {
     assertEquals(1, dequeuedTask.getPriority());
   }
 
+  /**
+   * Tests dequeue from an empty queue.
+   */
   @Test
   void testDequeueTaskFromEmptyQueue() {
     Queue queue = queueService.createQueue("Empty");
     Task task = queueService.dequeueTask(queue.getId());
-    assertEquals(null, task);
+    assertNull(task);
   }
 
+  /**
+   * Tests clearing all on a nonempty queue.
+   */
   @Test
   void testClearAll() {
     queueService.createQueue("Q1");
@@ -329,12 +351,18 @@ public class QueueServiceUnitTests {
     assertEquals(0, queueService.getAllQueueCount());
   }
 
+  /**
+   * Tests clearing all on an empty queue.
+   */
   @Test
   void testClearAllEmpty() {
     queueService.clearAll();
     assertEquals(0, queueService.getAllQueueCount());
   }
 
+  /**
+   * Tests the get all queue count functionality where there is a count.
+   */
   @Test
   void testGetAllQueueCount() {
     queueService.clearAll();
@@ -343,6 +371,9 @@ public class QueueServiceUnitTests {
     assertEquals(2, queueService.getAllQueueCount());
   }
 
+  /**
+   * Tests the getAll functionality when the queue count is empty.
+   */
   @Test
   void testGetAllQueueCountEmpty() {
     queueService.clearAll();

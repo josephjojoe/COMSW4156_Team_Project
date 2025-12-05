@@ -448,6 +448,9 @@ public class QueueStoreUnitTests {
     assertEquals(3, restoredQueue.getTaskCount(), "All 3 tasks should be restored");
   }
 
+  /**
+   * Tests creating a queue witha "null" name.
+   */
   @Test
   public void testCreateQueueWithNullName() {
     Queue q = store.createQueue(null);
@@ -455,6 +458,9 @@ public class QueueStoreUnitTests {
     assertNull(q.getName());
   }
 
+  /**
+   * Tests creating a queue with an empty name.
+   */
   @Test
   public void testCreateQueueWithEmptyName() {
     Queue q = store.createQueue("");
@@ -462,12 +468,18 @@ public class QueueStoreUnitTests {
     assertEquals("", q.getName());
   }
 
+  /**
+   * Tests attempting to fetch a nonexistent queue.
+   */
   @Test
   public void testGetQueueNonExistent() {
     Queue q = store.getQueue(UUID.randomUUID());
     assertNull(q);
   }
 
+  /**
+   * Testing clearing all queues.
+   */
   @Test
   public void testClearAll() {
     store.createQueue("Q1");
@@ -476,12 +488,18 @@ public class QueueStoreUnitTests {
     assertEquals(0, store.getAllQueues().size());
   }
 
+  /**
+   * Tests clearing all empty queues.
+   */
   @Test
   public void testClearAllEmpty() {
     store.clearAll();
     assertEquals(0, store.getAllQueues().size());
   }
 
+  /**
+   * Tests getting all queues.
+   */
   @Test
   public void testGetAllQueues() {
     store.createQueue("Q1");
@@ -489,6 +507,9 @@ public class QueueStoreUnitTests {
     assertEquals(2, store.getAllQueues().size());
   }
 
+  /**
+   * Testing get all queues when empty.
+   */
   @Test
   public void testGetAllQueuesEmpty() {
     assertEquals(0, store.getAllQueues().size());
