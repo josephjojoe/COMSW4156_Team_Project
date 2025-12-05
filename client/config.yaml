@@ -2,7 +2,7 @@
 
 # Queue Service Settings
 queue_service:
-  base_url: "http://localhost:8080"
+  base_url: "https://advanced-swe-group-project-server-694826236118.us-east4.run.app"
 
 # Storage Paths
 storage:
