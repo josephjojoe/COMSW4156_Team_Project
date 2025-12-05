@@ -459,23 +459,30 @@ Queue ID: abc123...(<Queue_ID>)
 PDF ID: qaz345...(<PDF_ID>)
 ```
 
-### Step 3: Start Multiple Workers in different terminals
+### Step 3: Start Multiple Workers
 
-Open 3 terminal windows:
+**Option A: Start workers simultaneously (recommended for demo)**
 
-**Open Terminal 1:**
+To clearly see multiple workers splitting pages in parallel, start them at the same time using `&`:
+
+```bash
+cd client
+python -m src.worker <Queue_ID> & python -m src.worker <Queue_ID>
+```
+
+This ensures both workers poll for tasks simultaneously, demonstrating the distributed work division.
+
+**Option B: Separate terminals**
+
+Alternatively, open separate terminal windows and start workers manually. Note that on small PDFs, if you don't start them quickly enough, one worker may finish all tasks before the other starts.
+
+**Terminal 1:**
 ```bash
 cd client
 python -m src.worker <Queue_ID>
 ```
 
-**Open Terminal 2:**
-```bash
-cd client
-python -m src.worker <Queue_ID>
-```
-
-**Open Terminal 3:**
+**Terminal 2:**
 ```bash
 cd client
 python -m src.worker <Queue_ID>
