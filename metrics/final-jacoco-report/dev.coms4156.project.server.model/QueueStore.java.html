@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueueStore.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Server</a> &gt; <a href="index.source.html" class="el_package">dev.coms4156.project.server.model</a> &gt; <span class="el_source">QueueStore.java</span></div><h1>QueueStore.java</h1><pre class="source lang-java linenums">package dev.coms4156.project.server.model;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import dev.coms4156.project.server.model.snapshot.QueueSnapshot;
+import dev.coms4156.project.server.model.snapshot.ResultSnapshot;
+import dev.coms4156.project.server.model.snapshot.SnapshotData;
+import dev.coms4156.project.server.model.snapshot.TaskSnapshot;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+/**
+ * This class serves as a centralized in-memory registry
+ * for all active {@link Queue} instances in the application.
+ *
+ * &lt;p&gt;Includes snapshot-based persistence to ensure queue state survives
+ * server restarts. Snapshots are saved periodically and on shutdown, and loaded
+ * automatically on startup.
+ */
+public final class QueueStore {
+
+<span class="fc" id="L35">  private static final Logger log = LoggerFactory.getLogger(QueueStore.class);</span>
+  private static final String SNAPSHOT_FILE = &quot;queue_snapshot.json&quot;;
+  private static final String SNAPSHOT_TEMP_FILE = &quot;queue_snapshot.tmp&quot;;
+  private static final int SNAPSHOT_INTERVAL_SECONDS = 30;
+
+  /**
+   * Singleton instance of QueueStore.
+   */
+  private static QueueStore instance;
+
+
+  /**
+   * Thread-safe map storing queue IDs mapped to Queue objects.
+   */
+  private final Map&lt;UUID, Queue&gt; queues;
+
+  /**
+   * Scheduler for periodic snapshots.
+   */
+  private final ScheduledExecutorService snapshotScheduler;
+
+  /**
+   * Gson instance for JSON serialization.
+   */
+  private final Gson gson;
+
+
+  /**
+  * Private constructor prevents external instantiation.
+  * Initializes the queue store and loads any existing snapshot.
+  */
+<span class="fc" id="L66">  private QueueStore() {</span>
+<span class="fc" id="L67">    this.queues = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L68">    this.gson = new GsonBuilder().setPrettyPrinting().create();</span>
+<span class="fc" id="L69">    this.snapshotScheduler = Executors.newScheduledThreadPool(1);</span>
+    
+    // Load existing snapshot on startup
+<span class="fc" id="L72">    loadSnapshot();</span>
+    
+    // Schedule periodic snapshots
+<span class="fc" id="L75">    startPeriodicSnapshots();</span>
+    
+    // Register shutdown hook to save snapshot on clean shutdown
+<span class="fc" id="L78">    Runtime.getRuntime().addShutdownHook(new Thread(() -&gt; {</span>
+<span class="fc" id="L79">      log.info(&quot;Shutdown detected, saving final snapshot...&quot;);</span>
+<span class="fc" id="L80">      saveSnapshot();</span>
+<span class="fc" id="L81">      snapshotScheduler.shutdown();</span>
+<span class="fc" id="L82">    }));</span>
+<span class="fc" id="L83">  }</span>
+
+
+  /**
+  * Returns the single shared instance of {@code QueueStore}.
+  *
+  * @return the global QueueStore instance
+  */
+  public static synchronized QueueStore getInstance() {
+<span class="fc bfc" id="L92" title="All 2 branches covered.">    if (instance == null) {</span>
+<span class="fc" id="L93">      instance = new QueueStore();</span>
+    }
+<span class="fc" id="L95">    return instance;</span>
+  }
+
+
+  /**
+   * Creates and registers a new {@link Queue} with the given name.
+   *
+   * @param name descriptive name for the queue
+   * @return the newly created Queue instance
+   */
+  public synchronized Queue createQueue(String name) {
+<span class="fc" id="L106">    Queue queue = new Queue(name);</span>
+<span class="fc" id="L107">    queues.put(queue.getId(), queue);</span>
+<span class="fc" id="L108">    return queue;</span>
+  }
+
+
+  /**
+  * Retrieves a queue by its unique ID.
+  *
+  * @param id the queue ID
+  * @return the Queue that matches the ID, or {@code null} if not found
+  */
+  public Queue getQueue(UUID id) {
+<span class="fc" id="L119">    return queues.get(id);</span>
+  }
+
+
+  /**
+   * Removes a queue by ID if it exists.
+   *
+   * @param id ID of the queue to remove
+   * @return {@code true} if removed successfully, {@code false} otherwise
+  */
+  public synchronized boolean removeQueue(UUID id) {
+<span class="fc bfc" id="L130" title="All 2 branches covered.">    return queues.remove(id) != null;</span>
+  }
+
+
+  /**
+  * Clears all queues.
+  */
+  public synchronized void clearAll() {
+<span class="fc" id="L138">    queues.clear();</span>
+<span class="fc" id="L139">  }</span>
+
+
+  /**
+  * Returns all queues currently stored.
+  *
+  * @return a map of all queue IDs and their corresponding Queue objects
+  */
+  public Map&lt;UUID, Queue&gt; getAllQueues() {
+<span class="fc" id="L148">    return queues;</span>
+  }
+
+  /**
+   * Starts the periodic snapshot scheduler.
+   * Snapshots are saved every SNAPSHOT_INTERVAL_SECONDS.
+   */
+  private void startPeriodicSnapshots() {
+<span class="fc" id="L156">    snapshotScheduler.scheduleAtFixedRate(</span>
+        this::saveSnapshot,
+        SNAPSHOT_INTERVAL_SECONDS,
+        SNAPSHOT_INTERVAL_SECONDS,
+        TimeUnit.SECONDS
+    );
+<span class="fc" id="L162">    log.info(&quot;Started periodic snapshots (interval: {} seconds)&quot;, SNAPSHOT_INTERVAL_SECONDS);</span>
+<span class="fc" id="L163">  }</span>
+
+  /**
+   * Saves the current state of all queues to a snapshot file.
+   * Uses atomic file write (write to temp, then rename) to prevent corruption.
+   */
+  @SuppressWarnings(&quot;PMD.AvoidInstantiatingObjectsInLoops&quot;)
+  public synchronized void saveSnapshot() {
+    try {
+<span class="fc" id="L172">      final File tempFile = new File(SNAPSHOT_TEMP_FILE);</span>
+<span class="fc" id="L173">      final File actualFile = new File(SNAPSHOT_FILE);</span>
+
+      // Create snapshot data
+<span class="fc" id="L176">      SnapshotData snapshot = new SnapshotData();</span>
+<span class="fc" id="L177">      List&lt;QueueSnapshot&gt; queueSnapshots = new ArrayList&lt;&gt;();</span>
+
+      // Take a defensive copy of the queues to avoid concurrent modification
+<span class="fc" id="L180">      List&lt;Queue&gt; queuesCopy = new ArrayList&lt;&gt;(queues.values());</span>
+
+<span class="fc bfc" id="L182" title="All 2 branches covered.">      for (Queue queue : queuesCopy) {</span>
+<span class="fc" id="L183">        QueueSnapshot queueSnap = new QueueSnapshot();</span>
+<span class="fc" id="L184">        queueSnap.setId(queue.getId().toString());</span>
+<span class="fc" id="L185">        queueSnap.setName(queue.getName());</span>
+
+        // Get synchronized snapshots of tasks and results from the queue
+        // getAllTasks() and getAllResults() are synchronized on the Queue object
+<span class="fc" id="L189">        List&lt;Task&gt; tasksCopy = queue.getAllTasks();</span>
+<span class="fc" id="L190">        List&lt;Result&gt; resultsCopy = queue.getAllResults();</span>
+
+        // Snapshot all tasks from the copy
+<span class="fc" id="L193">        List&lt;TaskSnapshot&gt; taskSnapshots = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L194" title="All 2 branches covered.">        for (Task task : tasksCopy) {</span>
+<span class="fc" id="L195">          TaskSnapshot taskSnap = new TaskSnapshot(</span>
+<span class="fc" id="L196">              task.getId().toString(),</span>
+<span class="fc" id="L197">              task.getParams(),</span>
+<span class="fc" id="L198">              task.getPriority(),</span>
+<span class="fc" id="L199">              task.getStatus().name()</span>
+          );
+<span class="fc" id="L201">          taskSnapshots.add(taskSnap);</span>
+<span class="fc" id="L202">        }</span>
+<span class="fc" id="L203">        queueSnap.setTasks(taskSnapshots);</span>
+
+        // Snapshot all results from the copy
+<span class="fc" id="L206">        List&lt;ResultSnapshot&gt; resultSnapshots = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">        for (Result result : resultsCopy) {</span>
+<span class="fc" id="L208">          ResultSnapshot resultSnap = new ResultSnapshot(</span>
+<span class="fc" id="L209">              result.getTaskId().toString(),</span>
+<span class="fc" id="L210">              result.getOutput(),</span>
+<span class="fc" id="L211">              result.getStatus().name(),</span>
+<span class="fc" id="L212">              result.getTimestamp().toString()</span>
+          );
+<span class="fc" id="L214">          resultSnapshots.add(resultSnap);</span>
+<span class="fc" id="L215">        }</span>
+<span class="fc" id="L216">        queueSnap.setResults(resultSnapshots);</span>
+
+<span class="fc" id="L218">        queueSnapshots.add(queueSnap);</span>
+<span class="fc" id="L219">      }</span>
+
+<span class="fc" id="L221">      snapshot.setQueues(queueSnapshots);</span>
+
+      // Write to temp file
+<span class="fc" id="L224">      try (var writer = Files.newBufferedWriter(tempFile.toPath(), StandardCharsets.UTF_8)) {</span>
+<span class="fc" id="L225">        gson.toJson(snapshot, writer);</span>
+      }
+
+      // Atomic rename (crash-safe)
+<span class="pc bpc" id="L229" title="1 of 4 branches missed.">      if (actualFile.exists() &amp;&amp; !actualFile.delete()) {</span>
+<span class="nc" id="L230">        throw new IOException(</span>
+<span class="nc" id="L231">            &quot;Failed to delete old snapshot file: &quot; + actualFile.getAbsolutePath());</span>
+      }
+
+<span class="pc bpc" id="L234" title="1 of 2 branches missed.">      if (!tempFile.renameTo(actualFile)) {</span>
+<span class="nc" id="L235">        throw new IOException(</span>
+<span class="nc" id="L236">            &quot;Failed to rename temp snapshot file to: &quot; + actualFile.getAbsolutePath());</span>
+      }
+
+<span class="pc bpc" id="L239" title="1 of 2 branches missed.">      if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L240">        log.debug(&quot;Snapshot saved successfully ({} queues, {} total tasks)&quot;,</span>
+<span class="nc" id="L241">            queueSnapshots.size(),</span>
+<span class="nc" id="L242">            queueSnapshots.stream().mapToInt(q -&gt; q.getTasks().size()).sum());</span>
+      }
+
+<span class="nc" id="L245">    } catch (IOException e) {</span>
+<span class="nc" id="L246">      log.error(&quot;Failed to save snapshot&quot;, e);</span>
+<span class="nc" id="L247">      throw new RuntimeException(&quot;Snapshot save failed&quot;, e);</span>
+<span class="fc" id="L248">    }</span>
+<span class="fc" id="L249">  }</span>
+
+  /**
+   * Loads queue state from the snapshot file if it exists.
+   * Called automatically on startup.
+   */
+  @SuppressWarnings(&quot;PMD.AvoidInstantiatingObjectsInLoops&quot;)
+  private synchronized void loadSnapshot() {
+<span class="fc" id="L257">    File snapshotFile = new File(SNAPSHOT_FILE);</span>
+    
+<span class="fc bfc" id="L259" title="All 2 branches covered.">    if (!snapshotFile.exists()) {</span>
+<span class="fc" id="L260">      log.info(&quot;No snapshot file found, starting with empty queue store&quot;);</span>
+<span class="fc" id="L261">      return;</span>
+    }
+
+<span class="fc" id="L264">    try (var reader = Files.newBufferedReader(snapshotFile.toPath(), StandardCharsets.UTF_8)) {</span>
+<span class="fc" id="L265">      SnapshotData snapshot = gson.fromJson(reader, SnapshotData.class);</span>
+
+<span class="pc bpc" id="L267" title="1 of 4 branches missed.">      if (snapshot == null || snapshot.getQueues() == null) {</span>
+<span class="fc" id="L268">        log.warn(&quot;Snapshot file is empty or invalid&quot;);</span>
+<span class="fc" id="L269">        return;</span>
+      }
+
+<span class="fc" id="L272">      int totalTasks = 0;</span>
+<span class="fc" id="L273">      int totalResults = 0;</span>
+
+      // Restore each queue
+<span class="fc bfc" id="L276" title="All 2 branches covered.">      for (QueueSnapshot queueSnap : snapshot.getQueues()) {</span>
+<span class="fc" id="L277">        UUID queueId = UUID.fromString(queueSnap.getId());</span>
+<span class="fc" id="L278">        Queue queue = new Queue(queueSnap.getName(), queueId);</span>
+
+        // Restore tasks
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">        if (queueSnap.getTasks() != null) {</span>
+<span class="fc bfc" id="L282" title="All 2 branches covered.">          for (TaskSnapshot taskSnap : queueSnap.getTasks()) {</span>
+            try {
+<span class="fc" id="L284">              UUID taskId = UUID.fromString(taskSnap.getId());</span>
+<span class="fc" id="L285">              Task.TaskStatus status = Task.TaskStatus.valueOf(taskSnap.getStatus());</span>
+<span class="fc" id="L286">              Task task = new Task(taskId, taskSnap.getParams(), taskSnap.getPriority(), status);</span>
+<span class="fc" id="L287">              queue.enqueue(task);</span>
+<span class="fc" id="L288">              totalTasks++;</span>
+<span class="fc" id="L289">            } catch (IllegalArgumentException e) {</span>
+<span class="pc bpc" id="L290" title="1 of 2 branches missed.">              if (log.isWarnEnabled()) {</span>
+<span class="fc" id="L291">                log.warn(&quot;Skipping task with invalid data (id: {}, status: {}): {}&quot;,</span>
+<span class="fc" id="L292">                      taskSnap.getId(), taskSnap.getStatus(), e.getMessage());</span>
+              }
+<span class="fc" id="L294">            }</span>
+<span class="fc" id="L295">          }</span>
+        }
+
+        // Restore results
+<span class="pc bpc" id="L299" title="1 of 2 branches missed.">        if (queueSnap.getResults() != null) {</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">          for (ResultSnapshot resultSnap : queueSnap.getResults()) {</span>
+            try {
+<span class="fc" id="L302">              Result result = new Result(</span>
+<span class="fc" id="L303">                  UUID.fromString(resultSnap.getTaskId()),</span>
+<span class="fc" id="L304">                  resultSnap.getOutput(),</span>
+<span class="fc" id="L305">                  Result.ResultStatus.valueOf(resultSnap.getStatus())</span>
+              );
+<span class="fc" id="L307">              queue.addResult(result);</span>
+<span class="fc" id="L308">              totalResults++;</span>
+<span class="fc" id="L309">            } catch (IllegalArgumentException e) {</span>
+<span class="pc bpc" id="L310" title="1 of 2 branches missed.">              if (log.isWarnEnabled()) {</span>
+<span class="fc" id="L311">                log.warn(&quot;Skipping result with invalid data (taskId: {}, status: {}): {}&quot;,</span>
+<span class="fc" id="L312">                      resultSnap.getTaskId(), resultSnap.getStatus(), e.getMessage());</span>
+              }
+<span class="fc" id="L314">            }</span>
+<span class="fc" id="L315">          }</span>
+        }
+<span class="fc" id="L317">        queues.put(queueId, queue);</span>
+<span class="fc" id="L318">      }</span>
+
+<span class="pc bpc" id="L320" title="1 of 2 branches missed.">      if (log.isInfoEnabled()) { </span>
+<span class="fc" id="L321">        log.info(&quot;Snapshot loaded successfully: {} queues, {} tasks, {} results&quot;,</span>
+<span class="fc" id="L322">            snapshot.getQueues().size(), totalTasks, totalResults);</span>
+      }
+
+<span class="pc bpc" id="L325" title="1 of 2 branches missed.">    } catch (IOException e) {</span>
+<span class="nc" id="L326">      log.error(&quot;Failed to load snapshot&quot;, e);</span>
+<span class="fc" id="L327">    } catch (Exception e) {</span>
+<span class="fc" id="L328">      log.error(&quot;Error parsing snapshot file&quot;, e);</span>
+<span class="pc" id="L329">    }</span>
+<span class="fc" id="L330">  }</span>
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Queue.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Server</a> &gt; <a href="index.source.html" class="el_package">dev.coms4156.project.server.model</a> &gt; <span class="el_source">Queue.java</span></div><h1>Queue.java</h1><pre class="source lang-java linenums">package dev.coms4156.project.server.model;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
+
+
+/**
+ * This class represents an in-memory task queue that stores
+ * tasks in priority order and tracks their corresponding results.
+ */
+public class Queue {
+  private final UUID id;
+  private final String name;
+  private final BlockingQueue&lt;Task&gt; tasks;
+  private final Map&lt;UUID, Result&gt; results;
+
+
+  /**
+   * Constructs a new {@code Queue} with the given name and initializes its
+   * task queue and result map.
+   *
+   * @param name the descriptive name of this queue
+   */
+<span class="fc" id="L29">  public Queue(String name) {</span>
+<span class="fc" id="L30">    this.id = UUID.randomUUID();</span>
+<span class="fc" id="L31">    this.name = name;</span>
+<span class="fc" id="L32">    this.tasks = new PriorityBlockingQueue&lt;&gt;();</span>
+<span class="fc" id="L33">    this.results = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L34">  }</span>
+
+  /**
+   * Constructs a {@code Queue} with a specific UUID (used for loading from snapshots).
+   *
+   * @param name the descriptive name of this queue
+   * @param id   the UUID to use for this queue
+   */
+<span class="fc" id="L42">  public Queue(String name, UUID id) {</span>
+<span class="fc" id="L43">    this.id = id;</span>
+<span class="fc" id="L44">    this.name = name;</span>
+<span class="fc" id="L45">    this.tasks = new PriorityBlockingQueue&lt;&gt;();</span>
+<span class="fc" id="L46">    this.results = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L47">  }</span>
+
+
+  /**
+   * Returns the unique queue ID.
+   *
+   * @return the queue ID
+   */
+  public UUID getId() {
+<span class="fc" id="L56">    return id;</span>
+  }
+
+
+  /**
+   * Returns the queue name.
+   *
+   * @return the name of this queue
+   */
+  public String getName() {
+<span class="fc" id="L66">    return name;</span>
+  }
+
+
+  /**
+   * Attempts to add a task to the queue in a thread-safe manner.
+   * Returns {@code true} if the task was successfully added
+   * or {@code false} if the task was invalid or could not be added.
+   *
+   * @param task the task to enqueue
+   * @return {@code true} if added successfully, {@code false} otherwise
+   */
+  public synchronized boolean enqueue(Task task) {
+<span class="pc bpc" id="L79" title="1 of 4 branches missed.">    return task != null &amp;&amp; tasks.add(task);</span>
+  }
+
+
+  /**
+   * Retrieves and removes the highest-priority task from the queue.
+   * Returns {@code null} if the queue is empty.
+   *
+   * @return the next task or {@code null} if no tasks remain
+   */
+  public synchronized Task dequeue() {
+<span class="fc" id="L90">    return tasks.poll();</span>
+  }
+
+
+  /**
+  * Attempts to add a result from a completed task.
+  * Returns {@code true} if the result was successfully stored,
+  * or {@code false} if the result or its task ID was invalid.
+  *
+  * @param result the result to store
+  * @return {@code true} if successfully added, {@code false} otherwise
+  */
+  public synchronized boolean addResult(Result result) {
+<span class="fc bfc" id="L103" title="All 4 branches covered.">    if (result == null || result.getTaskId() == null) {</span>
+<span class="fc" id="L104">      return false;</span>
+    }
+<span class="fc" id="L106">    results.put(result.getTaskId(), result);</span>
+<span class="fc" id="L107">    return true;</span>
+  }
+
+  /**
+   * Retrieves the stored result for a given task ID.
+   *
+   * @param taskId the unique identifier of the task
+   * @return the result if present, or {@code null} otherwise
+   */
+  public synchronized Result getResult(UUID taskId) {
+<span class="fc" id="L117">    return results.get(taskId);</span>
+  }
+
+
+  /**
+  * Returns whether the queue currently has pending tasks.
+  *
+  * @return {@code true} if there are pending tasks, otherwise {@code false}
+  */
+  public boolean hasPendingTasks() {
+<span class="fc bfc" id="L127" title="All 2 branches covered.">    return !tasks.isEmpty();</span>
+  }
+
+
+  /**
+  * Returns the total number of tasks currently in the queue.
+  *
+  * @return the number of tasks in this queue
+  */
+  public int getTaskCount() {
+<span class="fc" id="L137">    return tasks.size();</span>
+  }
+
+
+  /**
+  * Returns the total number of stored results.
+  *
+  * @return the number of results stored in this queue
+  */
+  public int getResultCount() {
+<span class="fc" id="L147">    return results.size();</span>
+  }
+
+  /**
+   * Returns a list of all pending tasks in the queue.
+   * Used for snapshotting. The returned list is a copy to avoid
+   * concurrent modification issues.
+   *
+   * @return list of all tasks currently in the queue
+   */
+  public synchronized List&lt;Task&gt; getAllTasks() {
+<span class="fc" id="L158">    return new ArrayList&lt;&gt;(tasks);</span>
+  }
+
+  /**
+   * Returns a list of all stored results.
+   * Used for snapshotting. The returned list is a copy to avoid
+   * concurrent modification issues.
+   *
+   * @return list of all results
+   */
+  public synchronized List&lt;Result&gt; getAllResults() {
+<span class="fc" id="L169">    return new ArrayList&lt;&gt;(results.values());</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
