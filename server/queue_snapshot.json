@@ -1,0 +1,19 @@
+{
+  "queues": [
+    {
+      "id": "4823c5d4-a0a0-44d4-ba29-ca322c894321",
+      "name": "StoredQueueTest",
+      "tasks": [
+        {
+          "id": "46f6b3ef-a7f7-4677-8686-ac261d5aad12",
+          "params": "params",
+          "priority": 1,
+          "status": "PENDING"
+        }
+      ],
+      "results": []
+    }
+  ],
+  "timestamp": 1764892220538,
+  "version": "1.0"
+}

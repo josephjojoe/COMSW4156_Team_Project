@@ -185,6 +185,21 @@ curl -s "$BASE/queue/$QUEUE_ID/result/$TASK_ID" | jq .
 ```
 
 do brew install jq if you do not have jq
+# Testing our Service
+___
+
+Unit Tests:
+- We document the set of equivalence partitions we defined for each unit, and which tests target which partition(s) in the header commenst of our testing files.
+
+Api Tests:
+- We document the set of equivalence partitions we have defined for each end point, and which tests target which partition(s) in the header commenst of our testing files.
+
+Integration tests:
+- Internal: We document each test to explain what it is integrating with in th header comments of our integration testing files.
+
+- External: Our service does not interact with external systems such as databases, files, or third-party APIs.
+
+
 # Continuous Integration
 ___
 Our project uses a GitHub Actions CI workflow located at .github/workflows/main.yml. The CI loop runs automatically on every push and pull request to the main branch. It performs all required quality checks specified in the course rubric.
