@@ -55,7 +55,7 @@ public class QueueStoreUnitTests {
 
   /**
   * Before each test it resets the QueueStore state
-  * to nsures each test executes in a clean and isolated environment.
+  * to ensures each test executes in a clean and isolated environment.
   */
   @BeforeEach
   void setUp() {
@@ -66,6 +66,7 @@ public class QueueStoreUnitTests {
   /**
    * Clean up snapshot files after each test to ensure test isolation.
    */
+  @SuppressWarnings("ResultOfMethodCallIgnored")
   @AfterEach
   void tearDown() {
     store.clearAll();
@@ -389,7 +390,7 @@ public class QueueStoreUnitTests {
   @Test
   public void testLoadSnapshotWithMissingFile() throws Exception {
     // Ensure the file doesn't exist
-    new File(SNAPSHOT_FILE).delete();
+    boolean ignored = new File(SNAPSHOT_FILE).delete();
 
     // Load snapshot - should not throw
     Method loadSnapshotMethod = QueueStore.class.getDeclaredMethod("loadSnapshot");
@@ -454,7 +455,7 @@ public class QueueStoreUnitTests {
   public void testCreateQueueWithNullName() {
     Queue q = store.createQueue(null);
     assertNotNull(q);
-    assertEquals(null, q.getName());
+    assertNull(q.getName());
   }
 
   @Test
@@ -467,7 +468,7 @@ public class QueueStoreUnitTests {
   @Test
   public void testGetQueueNonExistent() {
     Queue q = store.getQueue(UUID.randomUUID());
-    assertEquals(null, q);
+    assertNull(q);
   }
 
   @Test
