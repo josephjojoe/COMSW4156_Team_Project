@@ -42,7 +42,7 @@ class LLMServiceConfig:
 
     provider: str = "openrouter"
     api_key: str | None = None
-    model: str = "openai/gpt-4o-mini"
+    model: str = "google/gemma-3-27b-it:free"
     max_questions: int = 3
 
 
@@ -72,7 +72,7 @@ class LLMService:
         self,
         provider: str = "openrouter",
         api_key: str | None = None,
-        model: str = "openai/gpt-4o-mini",
+        model: str = "google/gemma-3-27b-it:free",
         max_questions: int = 3,
     ) -> None:
         """
@@ -299,7 +299,7 @@ class LLMService:
         # support separate system / developer messages and will return a 400
         # if we send them. For those models we fold the system instructions
         # into the user message so the prompt is still respected.
-        model_name = (self.model or "openai/gpt-4o-mini").lower()
+        model_name = (self.model or "google/gemma-3-27b-it:free").lower()
         if "google/gemma-3" in model_name:
             combined_instructions = f"{system_message} {user_instructions}"
             messages = [

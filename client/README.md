@@ -344,9 +344,9 @@ All directories are created automatically.
 ### LLM Section
 ```yaml
 llm:
-  provider: "mock"           # Options: "openai", "anthropic", "gemini", "mock"
-  api_key: null              # For real APIs: ${OPENAI_API_KEY}
-  model: "mock-model"        # e.g., "gpt-4o", "claude-3-5-sonnet-20241022"
+  provider: "mock"           # Options: "openrouter", "mock"
+  api_key: null              # For real APIs: ${OPENROUTER_API_KEY}
+  model: "google/gemma-3-27b-it:free"
   max_questions_per_page: 5  # Questions generated per page
 ```
 
@@ -360,12 +360,12 @@ llm:
   model: "mock-model"
 ```
 
-**For Production (Real LLM):**
+**For Production (Real LLM via OpenRouter):**
 ```yaml
 llm:
-  provider: "openai"
-  api_key: ${OPENAI_API_KEY}  # Uses environment variable
-  model: "gpt-4o"
+  provider: "openrouter"
+  api_key: ${OPENROUTER_API_KEY}  # Uses environment variable
+  model: "google/gemma-3-27b-it:free"
 ```
 
 Then set the environment variable:
@@ -374,9 +374,7 @@ export OPENAI_API_KEY="sk-..."
 ```
 
 **Supported Providers:**
-- `openai` - OpenAI GPT-4o, GPT-4 Turbo
-- `anthropic` - Claude 3.5 Sonnet, Claude 3 Opus
-- `gemini` - Gemini 1.5 Flash, Gemini 1.5 Pro
+- `openrouter` - Any model available via OpenRouter (e.g., Gemma 3)
 - `mock` - Fake responses for testing (no API calls)
 
 ### Worker Section
