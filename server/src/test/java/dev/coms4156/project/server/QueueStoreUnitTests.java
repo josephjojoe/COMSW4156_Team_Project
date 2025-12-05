@@ -54,9 +54,9 @@ public class QueueStoreUnitTests {
   private QueueStore store;
 
   /**
-   * Before each test it resets the QueueStore state
-   * to ensures each test executes in a clean and isolated environment.
-   */
+  * Before each test it resets the QueueStore state
+  * to nsures each test executes in a clean and isolated environment.
+  */
   @BeforeEach
   void setUp() {
     store = QueueStore.getInstance();
@@ -66,7 +66,6 @@ public class QueueStoreUnitTests {
   /**
    * Clean up snapshot files after each test to ensure test isolation.
    */
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   @AfterEach
   void tearDown() {
     store.clearAll();
@@ -76,8 +75,8 @@ public class QueueStoreUnitTests {
   }
 
   /**
-   * Verifies that multiple calls to getInstance() return the same object reference.
-   */
+  * Verifies that multiple calls to getInstance() return the same object reference.
+  */
   @Test
   public void testSingletonInstance() {
     QueueStore store1 = QueueStore.getInstance();
@@ -86,8 +85,8 @@ public class QueueStoreUnitTests {
   }
 
   /**
-   * Verifies that a new Queue can be created and retrieved successfully.
-   */
+  * Verifies that a new Queue can be created and retrieved successfully.
+  */
   @Test
   public void testCreateQueue() {
     Queue q1 = store.createQueue("Queue 1");
@@ -113,6 +112,10 @@ public class QueueStoreUnitTests {
   public void testRemoveQueueFailure() {
     assertFalse(store.removeQueue(UUID.randomUUID()));
   }
+
+  // ========================
+  // Snapshot Tests
+  // ========================
 
   /**
    * Verifies that saveSnapshot creates a snapshot file.
@@ -383,7 +386,6 @@ public class QueueStoreUnitTests {
   /**
    * Verifies that loadSnapshot handles missing snapshot file gracefully.
    */
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   @Test
   public void testLoadSnapshotWithMissingFile() throws Exception {
     // Ensure the file doesn't exist
@@ -452,7 +454,7 @@ public class QueueStoreUnitTests {
   public void testCreateQueueWithNullName() {
     Queue q = store.createQueue(null);
     assertNotNull(q);
-    assertNull(q.getName());
+    assertEquals(null, q.getName());
   }
 
   @Test
@@ -465,7 +467,7 @@ public class QueueStoreUnitTests {
   @Test
   public void testGetQueueNonExistent() {
     Queue q = store.getQueue(UUID.randomUUID());
-    assertNull(q);
+    assertEquals(null, q);
   }
 
   @Test
