@@ -33,17 +33,13 @@
 
 package dev.coms4156.project.server;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import dev.coms4156.project.server.model.Task;
 import dev.coms4156.project.server.model.Task.TaskStatus;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the Task class.
@@ -281,8 +277,7 @@ public class TaskUnitTests {
   @Test
   public void testTaskWithNullParams() {
     Task nullParamsTask = new Task(null, 1);
-    assertEquals(null, nullParamsTask.getParams(), 
-            "Task should accept null params");
+    assertNull(nullParamsTask.getParams(), "Task should accept null params");
   }
 
   /**
@@ -292,8 +287,7 @@ public class TaskUnitTests {
   @Test
   public void testSetStatusWithNull() {
     task.setStatus(null);
-    assertEquals(null, task.getStatus(), 
-            "Task should accept null status");
+    assertNull(task.getStatus(), "Task should accept null status");
   }
 
   /**
@@ -328,8 +322,7 @@ public class TaskUnitTests {
    */
   @Test
   public void testEqualsWithSameReference() {
-    assertTrue(task.equals(task), 
-            "Task should be equal to itself");
+    assertEquals(task, task, "Task should be equal to itself");
   }
 
   /**
@@ -346,8 +339,7 @@ public class TaskUnitTests {
   @Test
   public void testEqualsWithDifferentType() {
     String notAtask = "This is not a task";
-    assertFalse(task.equals(notAtask), 
-            "Task should not be equal to a String object");
+    assertNotEquals(notAtask, task, "Task should not be equal to a String object");
   }
 
   /**
@@ -358,9 +350,8 @@ public class TaskUnitTests {
   public void testEqualsWithSamePriorityDifferentIds() {
     Task task1 = new Task("params1", 5);
     Task task2 = new Task("params2", 5);
-    
-    assertFalse(task1.equals(task2), 
-            "Tasks with same priority but different IDs should not be equal");
+
+    assertNotEquals(task1, task2, "Tasks with same priority but different IDs should not be equal");
   }
 
   /**
@@ -370,9 +361,8 @@ public class TaskUnitTests {
   public void testEqualsWithDifferentIds() {
     Task task1 = new Task(testParams, 1);
     Task task2 = new Task(testParams, 1);
-    
-    assertFalse(task1.equals(task2), 
-            "Tasks with different IDs should not be equal");
+
+    assertNotEquals(task1, task2, "Tasks with different IDs should not be equal");
   }
 
   /**
@@ -413,9 +403,12 @@ public class TaskUnitTests {
             "Tasks with different IDs should have different hashCodes");
   }
 
+  /**
+   * Tests the task constructor with a null ID.
+   */
   @Test
   public void testTaskConstructorWithNullId() {
     Task t = new Task(null, "params", 1, TaskStatus.PENDING);
-    assertEquals(null, t.getId());
+    assertNull(t.getId());
   }
 }
