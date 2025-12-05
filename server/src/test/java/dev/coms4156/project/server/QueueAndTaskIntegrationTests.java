@@ -8,7 +8,8 @@
  *
  * <p>Queue.enqueue(Task) + Queue.dequeue():
  * - Valid: tasks with different priorities -> tasksAreDequeuedInCompareToOrder
- * - Boundary: tasks with same priority -> tasksWithSamePriorityAreAllDequeuedButOrderIsNotGuaranteed
+ * - Boundary: tasks with same priority ->
+ * tasksWithSamePriorityAreAllDequeuedButOrderIsNotGuaranteed
  * - Valid: same task reference -> dequeueReturnsSameTaskReference
  */
 
