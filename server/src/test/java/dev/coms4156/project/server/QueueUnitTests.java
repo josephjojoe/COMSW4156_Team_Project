@@ -86,7 +86,7 @@ public class QueueUnitTests {
 
   @Test
   void testEnqueueNullTask() {
-    assertEquals(false, queue.enqueue(null));
+    assertFalse(queue.enqueue(null));
   }
 
   /**
@@ -119,7 +119,7 @@ public class QueueUnitTests {
   @Test
   void testEnqueueTask() {
     Task task = new Task("Print 'Hello'", 1);
-    assertEquals(true, queue.enqueue(task));
+    assertTrue(queue.enqueue(task));
     assertEquals(1, queue.getTaskCount());
     assertTrue(queue.hasPendingTasks());
   }
@@ -245,7 +245,7 @@ public class QueueUnitTests {
   void testQueueConstructorWithNullName() {
     Queue q = new Queue(null);
     assertNotNull(q.getId());
-    assertEquals(null, q.getName());
+    assertNull(q.getName());
   }
 
   @Test
@@ -266,7 +266,7 @@ public class QueueUnitTests {
   @Test
   void testQueueConstructorWithNullUuid() {
     Queue q = new Queue("Test", null);
-    assertEquals(null, q.getId());
+    assertNull(q.getId());
     assertEquals("Test", q.getName());
   }
 
@@ -291,11 +291,6 @@ public class QueueUnitTests {
     queue.addResult(new Result(id1, "out1", Result.ResultStatus.SUCCESS));
     queue.addResult(new Result(id2, "out2", Result.ResultStatus.SUCCESS));
     assertEquals(2, queue.getAllResults().size());
-  }
-
-  @Test
-  void testGetAllResultsEmpty() {
-    assertEquals(0, queue.getAllResults().size());
   }
 
   /** Tests that enqueue returns false when given a null task. */

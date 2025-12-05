@@ -1,3 +1,22 @@
+/**
+ * Internal integration tests that validate interactions between: QueueStore <-> Queue
+ *
+ * <p>These tests verify that QueueStore correctly manages, persists, and returns
+ * the same live Queue instances, and that all Queue state (including Task and
+ * Result data) remains consistent across multiple operations and lookups.
+ * Note: AI assistance was used to review test coverage and suggest additional edge cases.
+ *
+ * <p>EQUIVALENCE PARTITIONS:
+ *
+ * <p>QueueStore.createQueue(String) + QueueStore.getQueue(UUID):
+ * - Valid: queue with state mutations -> storedQueueReflectsMutations
+ * - Valid: multiple queues -> queueStoreMaintainsIsolationAcrossMultipleQueues
+ * - Valid: same reference returned -> queueStoreReturnsSameObjectReference
+ *
+ * <p>QueueStore.removeQueue(UUID):
+ * - Valid: existing queue -> removingQueueFullyDeletesState
+ */
+
 package dev.coms4156.project.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,7 +35,6 @@ import dev.coms4156.project.server.model.Task;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 
 /**
  * Internal integration tests that validate interactions between: QueueStore <-> Queue
