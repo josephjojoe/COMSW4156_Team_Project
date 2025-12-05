@@ -27,6 +27,22 @@ from src.queue_client import QueueClient
 from src.pdf_processor import PDFProcessor
 
 
+# ===== Helper Functions =====
+
+def create_mock_image_files(tmp_path, image_paths):
+    """
+    Helper to create fake image files for validation.
+    
+    The new validation code in producer.py checks if image files exist.
+    Old tests only mocked the paths without creating files.
+    This helper creates empty files so validation passes.
+    """
+    from pathlib import Path
+    for path in image_paths:
+        file_path = Path(path)
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_text("fake image data")
+
 # ===== Test Fixtures =====
 
 @pytest.fixture
@@ -245,6 +261,17 @@ def test_process_pdf_workflow(tmp_path, mock_config, mock_queue_client, mock_pdf
     # Set up metadata directory
     mock_config.storage.metadata_dir = str(tmp_path / "metadata")
     
+    # NEW: Create mock image files that validation will check
+    mock_image_paths = [
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_1.png"),
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_2.png"),
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_3.png"),
+    ]
+    create_mock_image_files(tmp_path, mock_image_paths)
+    
+    # Update mock to return paths that point to tmp_path
+    mock_pdf_processor.split_pdf_to_images.return_value = mock_image_paths
+    
     # Create producer with mocked dependencies
     with patch('src.producer.load_config', return_value=mock_config), \
          patch('src.producer.QueueClient', return_value=mock_queue_client), \
@@ -290,6 +317,15 @@ def test_process_pdf_uses_generated_queue_name_when_none_provided(
     
     mock_config.storage.metadata_dir = str(tmp_path / "metadata")
     
+    # NEW: Create mock image files
+    mock_image_paths = [
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_1.png"),
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_2.png"),
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_3.png"),
+    ]
+    create_mock_image_files(tmp_path, mock_image_paths)
+    mock_pdf_processor.split_pdf_to_images.return_value = mock_image_paths
+    
     with patch('src.producer.load_config', return_value=mock_config), \
          patch('src.producer.QueueClient', return_value=mock_queue_client), \
          patch('src.producer.PDFProcessor', return_value=mock_pdf_processor):
@@ -310,6 +346,15 @@ def test_process_pdf_task_params_structure(
     pdf_file.write_text("dummy pdf")
     
     mock_config.storage.metadata_dir = str(tmp_path / "metadata")
+    
+    # NEW: Create mock image files
+    mock_image_paths = [
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_1.png"),
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_2.png"),
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_3.png"),
+    ]
+    create_mock_image_files(tmp_path, mock_image_paths)
+    mock_pdf_processor.split_pdf_to_images.return_value = mock_image_paths
     
     with patch('src.producer.load_config', return_value=mock_config), \
          patch('src.producer.QueueClient', return_value=mock_queue_client), \
@@ -342,6 +387,15 @@ def test_process_pdf_priority_ordering(
     pdf_file.write_text("dummy pdf")
     
     mock_config.storage.metadata_dir = str(tmp_path / "metadata")
+    
+    # NEW: Create mock image files
+    mock_image_paths = [
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_1.png"),
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_2.png"),
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_3.png"),
+    ]
+    create_mock_image_files(tmp_path, mock_image_paths)
+    mock_pdf_processor.split_pdf_to_images.return_value = mock_image_paths
     
     with patch('src.producer.load_config', return_value=mock_config), \
          patch('src.producer.QueueClient', return_value=mock_queue_client), \
@@ -407,6 +461,265 @@ def test_process_pdf_conversion_failure_raises_error(
         
         assert "failed to convert" in str(exc_info.value).lower()
 
+# NEW TESTS TO ADD TO test_producer.py
+# Add these tests in the "Error Handling" section (after line 409)
+
+def test_process_pdf_incomplete_conversion_raises_error(
+    tmp_path, mock_config, mock_queue_client, mock_pdf_processor
+):
+    """
+    Test that process_pdf fails when PDF conversion returns fewer images than expected.
+    
+    This simulates a corrupted PDF where conversion fails partway through.
+    Example: PDF has 10 pages, but only 5 images are created.
+    """
+    pdf_file = tmp_path / "corrupted.pdf"
+    pdf_file.write_text("dummy pdf with corruption")
+    
+    # Mock: PDF reports 10 pages
+    mock_pdf_processor.get_pdf_page_count.return_value = 10
+    
+    # Mock: But conversion only creates 5 images (incomplete!)
+    mock_pdf_processor.split_pdf_to_images.return_value = [
+        "storage/pages/test-pdf_page_1.png",
+        "storage/pages/test-pdf_page_2.png",
+        "storage/pages/test-pdf_page_3.png",
+        "storage/pages/test-pdf_page_4.png",
+        "storage/pages/test-pdf_page_5.png",
+    ]
+    
+    mock_config.storage.metadata_dir = str(tmp_path / "metadata")
+    
+    with patch('src.producer.load_config', return_value=mock_config), \
+         patch('src.producer.QueueClient', return_value=mock_queue_client), \
+         patch('src.producer.PDFProcessor', return_value=mock_pdf_processor):
+        
+        producer = PDFProducer()
+        
+        # Should raise RuntimeError about incomplete conversion
+        with pytest.raises(RuntimeError) as exc_info:
+            producer.process_pdf(pdf_path=str(pdf_file))
+        
+        # Verify error message mentions the mismatch
+        error_msg = str(exc_info.value).lower()
+        assert "conversion incomplete" in error_msg or "incomplete" in error_msg
+        assert "10" in str(exc_info.value)  # Expected pages
+        assert "5" in str(exc_info.value)   # Actual images
+        
+        # Verify NO tasks were submitted (fail fast)
+        assert mock_queue_client.enqueue_task.call_count == 0
+
+
+def test_process_pdf_missing_image_files_raises_error(
+    tmp_path, mock_config, mock_queue_client, mock_pdf_processor
+):
+    """
+    Test that process_pdf fails when image paths are returned but files don't exist.
+    
+    This simulates the case where split_pdf_to_images returns paths,
+    but the actual image files weren't created on disk.
+    """
+    pdf_file = tmp_path / "test.pdf"
+    pdf_file.write_text("dummy pdf")
+    
+    # Mock: PDF has 3 pages
+    mock_pdf_processor.get_pdf_page_count.return_value = 3
+    
+    # Mock: Conversion returns 3 paths (correct count)
+    # BUT these files don't actually exist!
+    mock_pdf_processor.split_pdf_to_images.return_value = [
+        "storage/pages/nonexistent_page_1.png",  # This file doesn't exist
+        "storage/pages/nonexistent_page_2.png",  # This file doesn't exist
+        "storage/pages/nonexistent_page_3.png",  # This file doesn't exist
+    ]
+    
+    mock_config.storage.metadata_dir = str(tmp_path / "metadata")
+    
+    with patch('src.producer.load_config', return_value=mock_config), \
+         patch('src.producer.QueueClient', return_value=mock_queue_client), \
+         patch('src.producer.PDFProcessor', return_value=mock_pdf_processor):
+        
+        producer = PDFProducer()
+        
+        # Should raise RuntimeError about missing image files
+        with pytest.raises(RuntimeError) as exc_info:
+            producer.process_pdf(pdf_path=str(pdf_file))
+        
+        # Verify error message mentions validation failure
+        error_msg = str(exc_info.value).lower()
+        assert "validation failed" in error_msg or "missing" in error_msg
+        assert "3" in str(exc_info.value)  # Should mention 3 pages missing
+        
+        # Verify NO tasks were submitted (fail fast)
+        assert mock_queue_client.enqueue_task.call_count == 0
+
+
+def test_process_pdf_partial_missing_images_raises_error(
+    tmp_path, mock_config, mock_queue_client, mock_pdf_processor
+):
+    """
+    Test that process_pdf fails when only SOME image files are missing.
+    
+    This tests the edge case where conversion creates some files but not all.
+    Example: Pages 1-2 exist, but page 3 is missing.
+    """
+    pdf_file = tmp_path / "test.pdf"
+    pdf_file.write_text("dummy pdf")
+    
+    # Create temporary storage directory
+    storage_dir = tmp_path / "storage" / "pages"
+    storage_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Create SOME of the expected image files (but not all)
+    page1 = storage_dir / "test-pdf_page_1.png"
+    page2 = storage_dir / "test-pdf_page_2.png"
+    page1.write_text("fake image data")
+    page2.write_text("fake image data")
+    # page3 intentionally NOT created
+    
+    # Mock: PDF has 3 pages
+    mock_pdf_processor.get_pdf_page_count.return_value = 3
+    
+    # Mock: Conversion returns 3 paths
+    mock_pdf_processor.split_pdf_to_images.return_value = [
+        str(page1),  # EXISTS
+        str(page2),  # EXISTS
+        str(storage_dir / "test-pdf_page_3.png"),  # DOES NOT EXIST
+    ]
+    
+    mock_config.storage.metadata_dir = str(tmp_path / "metadata")
+    
+    with patch('src.producer.load_config', return_value=mock_config), \
+         patch('src.producer.QueueClient', return_value=mock_queue_client), \
+         patch('src.producer.PDFProcessor', return_value=mock_pdf_processor):
+        
+        producer = PDFProducer()
+        
+        # Should raise RuntimeError about missing page 3
+        with pytest.raises(RuntimeError) as exc_info:
+            producer.process_pdf(pdf_path=str(pdf_file))
+        
+        # Verify error message mentions validation failure
+        error_msg = str(exc_info.value).lower()
+        assert "validation failed" in error_msg or "missing" in error_msg
+        assert "1" in str(exc_info.value)  # Should mention 1 page missing
+        
+        # Verify NO tasks were submitted (fail fast)
+        assert mock_queue_client.enqueue_task.call_count == 0
+
+
+def test_process_pdf_validation_succeeds_when_all_images_exist(
+    tmp_path, mock_config, mock_queue_client, mock_pdf_processor
+):
+    """
+    Test that validation passes when all image files exist.
+    
+    This is the happy path for the new validation logic.
+    """
+    pdf_file = tmp_path / "test.pdf"
+    pdf_file.write_text("dummy pdf")
+    
+    # Create temporary storage directory
+    storage_dir = tmp_path / "storage" / "pages"
+    storage_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Create ALL expected image files
+    page1 = storage_dir / "test-pdf_page_1.png"
+    page2 = storage_dir / "test-pdf_page_2.png"
+    page3 = storage_dir / "test-pdf_page_3.png"
+    page1.write_text("fake image data")
+    page2.write_text("fake image data")
+    page3.write_text("fake image data")
+    
+    # Mock: PDF has 3 pages
+    mock_pdf_processor.get_pdf_page_count.return_value = 3
+    
+    # Mock: Conversion returns 3 paths that ALL EXIST
+    mock_pdf_processor.split_pdf_to_images.return_value = [
+        str(page1),
+        str(page2),
+        str(page3),
+    ]
+    
+    mock_config.storage.metadata_dir = str(tmp_path / "metadata")
+    
+    with patch('src.producer.load_config', return_value=mock_config), \
+         patch('src.producer.QueueClient', return_value=mock_queue_client), \
+         patch('src.producer.PDFProcessor', return_value=mock_pdf_processor):
+        
+        producer = PDFProducer()
+        
+        # Should NOT raise any errors
+        queue_id = producer.process_pdf(pdf_path=str(pdf_file))
+        
+        # Verify validation passed and tasks were submitted
+        assert queue_id == "test-queue-id-1234"
+        assert mock_queue_client.enqueue_task.call_count == 3
+        
+        # Verify metadata was created
+        metadata_files = list((tmp_path / "metadata").glob("*_metadata.json"))
+        assert len(metadata_files) == 1
+
+
+def test_process_pdf_task_submission_fails_after_validation(
+    tmp_path, mock_config, mock_queue_client, mock_pdf_processor
+):
+    """
+    Test that task submission failure raises error (not just warning).
+    
+    After validation passes, if task submission fails, the entire job should fail.
+    This tests the updated error handling in the task submission loop.
+    """
+    pdf_file = tmp_path / "test.pdf"
+    pdf_file.write_text("dummy pdf")
+    
+    # Create temporary storage directory with all images
+    storage_dir = tmp_path / "storage" / "pages"
+    storage_dir.mkdir(parents=True, exist_ok=True)
+    
+    page1 = storage_dir / "test-pdf_page_1.png"
+    page2 = storage_dir / "test-pdf_page_2.png"
+    page3 = storage_dir / "test-pdf_page_3.png"
+    page1.write_text("fake image data")
+    page2.write_text("fake image data")
+    page3.write_text("fake image data")
+    
+    # Mock: PDF has 3 pages
+    mock_pdf_processor.get_pdf_page_count.return_value = 3
+    
+    # Mock: Conversion returns 3 valid paths
+    mock_pdf_processor.split_pdf_to_images.return_value = [
+        str(page1),
+        str(page2),
+        str(page3),
+    ]
+    
+    # Mock: Task submission succeeds for first task, then fails
+    mock_queue_client.enqueue_task.side_effect = [
+        "task-001",  # First task succeeds
+        Exception("Network error"),  # Second task fails
+    ]
+    
+    mock_config.storage.metadata_dir = str(tmp_path / "metadata")
+    
+    with patch('src.producer.load_config', return_value=mock_config), \
+         patch('src.producer.QueueClient', return_value=mock_queue_client), \
+         patch('src.producer.PDFProcessor', return_value=mock_pdf_processor):
+        
+        producer = PDFProducer()
+        
+        # Should raise RuntimeError (not just print warning)
+        with pytest.raises(RuntimeError) as exc_info:
+            producer.process_pdf(pdf_path=str(pdf_file))
+        
+        # Verify error message mentions the failure
+        error_msg = str(exc_info.value).lower()
+        assert "failed to submit task" in error_msg
+        assert "page 2" in error_msg  # Should mention which page failed
+        
+        # Verify only 1 task was submitted before failure
+        assert mock_queue_client.enqueue_task.call_count == 2  # Called twice, failed on second
+
 
 # ===== Integration-Style Test (less mocking) =====
 
@@ -421,6 +734,15 @@ def test_process_pdf_metadata_matches_tasks(
     pdf_file.write_text("dummy pdf")
     
     mock_config.storage.metadata_dir = str(tmp_path / "metadata")
+    
+    # NEW: Create mock image files
+    mock_image_paths = [
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_1.png"),
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_2.png"),
+        str(tmp_path / "storage" / "pages" / "test-pdf_page_3.png"),
+    ]
+    create_mock_image_files(tmp_path, mock_image_paths)
+    mock_pdf_processor.split_pdf_to_images.return_value = mock_image_paths
     
     # Mock enqueue_task to return different task IDs
     task_ids = ["task-001", "task-002", "task-003"]
