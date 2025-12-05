@@ -167,8 +167,8 @@ public class QueueStoreUnitTests {
     queue2.enqueue(task2);
 
     UUID queue1Id = queue1.getId();
-    UUID queue2Id = queue2.getId();
-    UUID task1Id = task1.getId();
+    final UUID queue2Id = queue2.getId();
+    final UUID task1Id = task1.getId();
 
     // Save snapshot
     store.saveSnapshot();
@@ -323,7 +323,7 @@ public class QueueStoreUnitTests {
    * by skipping the entry and continuing.
    */
   @Test
-  public void testLoadSnapshotWithInvalidTaskUUID() throws Exception {
+  public void testLoadSnapshotWithInvalidTaskUuid() throws Exception {
     // Write a snapshot file with an invalid task UUID
     String invalidSnapshot = """
         {
@@ -435,7 +435,7 @@ public class QueueStoreUnitTests {
     queue.enqueue(mediumPriority);
     queue.enqueue(lowPriority);
 
-    UUID queueId = queue.getId();
+    final UUID queueId = queue.getId();
 
     store.saveSnapshot();
 
