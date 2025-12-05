@@ -9,7 +9,7 @@ Please use the following link to view the repository relevant to the app: [https
 # Where to find example client build
 
 Got to:
-**client/**
+**client/README.md**
 
 # Building and Running a Local Instance
 ___
@@ -226,10 +226,10 @@ Integration tests:
 
 # Continuous Integration
 ___
-Our project uses a GitHub Actions CI workflow located at .github/workflows/main.yml. The CI loop runs automatically on every push and pull request to the main branch. It performs all required quality checks specified in the course rubric.
+Our project uses a GitHub Actions CI workflow located at .github/workflows/main.yml. The CI loop runs automatically on every push and pull request to the main branch. It performs all required quality checks specified in the course rubric. 
 
 1. Static analysis  
-   The CI workflow runs PMD on the entire service codebase using the maven pmd plugin. PMD initially detected multiple issues including missing log guards, unnecessary constructors, unused imports, and design rule violations. We fixed all reported issues. Before and after PMD output files are included in reports/static-analysis/before and reports/static-analysis/after.
+   The CI workflow runs PMD on the entire service codebase using the maven pmd plugin. PMD initially detected multiple issues including missing log guards, unnecessary constructors, unused imports, and design rule violations. We fixed all reported issues. Before and after PMD output files are included in reports/static-analysis/before and reports/static-analysis/after. The final PMD report is included in the metrics directory.
 
 2. Style checking  
    The CI workflow runs Checkstyle using the maven checkstyle plugin, enforcing Google Java Style across the entire service including tests. All Checkstyle violations detected during development were fixed and CI now passes with no style errors.
@@ -244,9 +244,9 @@ Our project uses a GitHub Actions CI workflow located at .github/workflows/main.
    The CI workflow runs integration tests which cover interactions between multiple classes and the shared data among them.
 
 6. Coverage  
-   The CI workflow runs the Jacoco plugin during mvn verify to generate branch coverage reports. The most recent coverage report is included in the metrics directory.
+   The CI workflow runs the Jacoco plugin during mvn verify to generate branch coverage reports. The final coverage report is included in the metrics directory.
 
-Together these automated steps ensure that every pull request is checked for correct functionality, style consistency, thorough test coverage, and static analysis cleanliness before merging into the main branch.
+Together these automated steps ensure that every pull request is checked for correct functionality, style consistency, thorough test coverage, and static analysis cleanliness before merging into the main branch. A CI report is included in reports/CI_Reports. More reports are included as artifacts in each workflow run under the Actions tab of our repository.
 
 # Code Style (Checkstyle)
 ___
@@ -288,38 +288,31 @@ Our codebase passes all Checkstyle checks with **zero violations or warnings**.
 There's a copy our most recent Checkstyle + PMD result files in the /metrics directory.
 
 # Branch Coverage Report
-## **Current Coverage Status (Iteration 1)**
+## **Current Coverage Status (Iteration 2)**
 
-![Check Style](images/Branch_Coverage_Report.png)
+![Check Style](metrics/final-jacoco-report/index.html)
 | Metric | Coverage |
 |--------|----------|
-| **Instructions** | 81% |
-| **Branches** | 59% |
-| **Lines** | 83% |
-| **Methods** | 90% |
-| **Classes** | 100% |
+| **Branches** | 80% |
 
-# Static Code Analysis
-___
+
 # Tools used
 ___
 
 This section includes notes on tools and technologies used in building this project.
 
 - Maven Package Manager
-- GitHub Actions CI (planned)
+- GitHub Actions CI
     - CI workflow YAML to be added under `.github/workflows/`
 - Checkstyle
     - We use Checkstyle for code reporting.
-- PMD (planned)
+- PMD
     - PMD ruleset and plugin configuration to be added.
 - JUnit
     - JUnit tests get run automatically as part of the CI pipeline.
 - JaCoCo
     - We use JaCoCo for generating code coverage reports.
-- Postman (planned)
-    - We will use Postman for testing that the APIs work.
-- Mockito (planned)
+- Mockito
     - We use Mockito to create mock objects and isolate unit tests from external dependencies.
 
 # Cloning the Repository and Running it on Your Machine

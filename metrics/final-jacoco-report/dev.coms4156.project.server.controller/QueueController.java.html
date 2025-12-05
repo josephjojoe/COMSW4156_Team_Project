@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueueController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Server</a> &gt; <a href="index.source.html" class="el_package">dev.coms4156.project.server.controller</a> &gt; <span class="el_source">QueueController.java</span></div><h1>QueueController.java</h1><pre class="source lang-java linenums">package dev.coms4156.project.server.controller;
+
+import dev.coms4156.project.server.model.Queue;
+import dev.coms4156.project.server.model.Result;
+import dev.coms4156.project.server.model.Task;
+import dev.coms4156.project.server.service.QueueService;
+import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * REST controller for managing task queues.
+ * Provides endpoints for creating queues, enqueuing tasks, dequeuing tasks,
+ * and submitting/retrieving results.
+ */
+@RestController
+@RequestMapping(&quot;/queue&quot;)
+public class QueueController {
+
+  private final QueueService queueService;
+<span class="fc" id="L31">  private static final Logger log = LoggerFactory.getLogger(QueueController.class);</span>
+
+  /**
+   * Constructs a new QueueController with the specified QueueService.
+   *
+   * @param queueService the queue service to use
+   */
+<span class="fc" id="L38">  public QueueController(QueueService queueService) {</span>
+<span class="fc" id="L39">    this.queueService = queueService;</span>
+<span class="fc" id="L40">  }</span>
+
+  /**
+   * Creates a new queue with the given name.
+   *
+   * @param request the request containing the queue name
+   * @return the created queue
+   */
+  @PostMapping
+  public ResponseEntity&lt;Queue&gt; createQueue(@RequestBody CreateQueueRequest request) {
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">    if (log.isInfoEnabled()) {</span>
+<span class="fc" id="L51">      log.info(&quot;createQueue name={}&quot;, request.getName());</span>
+    }
+<span class="fc" id="L53">    Queue queue = queueService.createQueue(request.getName());</span>
+<span class="fc" id="L54">    return ResponseEntity.status(HttpStatus.CREATED).body(queue);</span>
+  }
+
+  /**
+   * Enqueues a new task to the specified queue.
+   *
+   * @param queueId the ID of the queue
+   * @param request the request containing task parameters and priority
+   * @return the created task
+   */
+  @PostMapping(&quot;/{queueId}/task&quot;)
+  public ResponseEntity&lt;Task&gt; enqueueTask(
+      @PathVariable(&quot;queueId&quot;) UUID queueId,
+      @RequestBody EnqueueTaskRequest request) {
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">    if (log.isInfoEnabled()) {</span>
+<span class="fc" id="L69">      log.info(&quot;enqueueTask queueId={} priority={}&quot;, queueId, request.getPriority());</span>
+    }
+<span class="fc" id="L71">    Task task = new Task(request.getParams(), request.getPriority());</span>
+<span class="fc" id="L72">    queueService.enqueueTask(queueId, task);</span>
+<span class="fc" id="L73">    return ResponseEntity.status(HttpStatus.CREATED).body(task);</span>
+  }
+
+  /**
+   * Dequeues the highest priority task from the specified queue.
+   *
+   * @param queueId the ID of the queue
+   * @return the dequeued task, or NO_CONTENT if queue is empty
+   */
+  @GetMapping(&quot;/{queueId}/task&quot;)
+  public ResponseEntity&lt;Task&gt; dequeueTask(@PathVariable(&quot;queueId&quot;) UUID queueId) {
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">    if (log.isInfoEnabled()) {</span>
+<span class="fc" id="L85">      log.info(&quot;dequeueTask queueId={}&quot;, queueId);</span>
+    }
+<span class="fc" id="L87">    Task task = queueService.dequeueTask(queueId);</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">    if (task == null) {</span>
+<span class="fc" id="L89">      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();</span>
+    }
+<span class="fc" id="L91">    return ResponseEntity.ok(task);</span>
+  }
+
+  /**
+   * Submits a result for a completed task.
+   *
+   * @param queueId the ID of the queue
+   * @param request the request containing task ID, output, and status
+   * @return the submitted result
+   */
+  @PostMapping(&quot;/{queueId}/result&quot;)
+  public ResponseEntity&lt;Result&gt; submitResult(
+      @PathVariable(&quot;queueId&quot;) UUID queueId,
+      @RequestBody SubmitResultRequest request) {
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">    if (log.isInfoEnabled()) {</span>
+<span class="fc" id="L106">      log.info(&quot;submitResult queueId={} taskId={} status={}&quot;,</span>
+<span class="fc" id="L107">          queueId, request.getTaskId(), request.getStatus());</span>
+    }
+<span class="fc" id="L109">    Result result = new Result(request.getTaskId(), request.getOutput(), request.getStatus());</span>
+<span class="fc" id="L110">    queueService.submitResult(queueId, result);</span>
+<span class="fc" id="L111">    return ResponseEntity.status(HttpStatus.CREATED).body(result);</span>
+  }
+
+  /**
+   * Retrieves the result for a specific task.
+   *
+   * @param queueId the ID of the queue
+   * @param taskId the ID of the task
+   * @return the result, or NOT_FOUND if no result exists
+   */
+  @GetMapping(&quot;/{queueId}/result/{taskId}&quot;)
+  public ResponseEntity&lt;Result&gt; getResult(
+      @PathVariable(&quot;queueId&quot;) UUID queueId,
+      @PathVariable(&quot;taskId&quot;) UUID taskId) {
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">    if (log.isInfoEnabled()) {</span>
+<span class="fc" id="L126">      log.info(&quot;getResult queueId={} taskId={}&quot;, queueId, taskId);</span>
+    }
+<span class="fc" id="L128">    Result result = queueService.getResult(queueId, taskId);</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">    if (result == null) {</span>
+<span class="fc" id="L130">      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+    }
+<span class="fc" id="L132">    return ResponseEntity.ok(result);</span>
+  }
+
+  /**
+   * Gets the status of a queue including task and result counts.
+   * This endpoint is used by aggregators to poll for completion status.
+   *
+   * @param queueId the ID of the queue
+   * @return the queue status with task counts and completion information
+   */
+  @GetMapping(&quot;/{queueId}/status&quot;)
+  public ResponseEntity&lt;QueueStatusResponse&gt; getQueueStatus(
+      @PathVariable(&quot;queueId&quot;) UUID queueId) {
+<span class="fc" id="L145">    log.info(&quot;getQueueStatus queueId={}&quot;, queueId);</span>
+<span class="fc" id="L146">    Queue queue = queueService.getQueue(queueId);</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">    if (queue == null) {</span>
+<span class="fc" id="L148">      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+    }
+    
+<span class="fc" id="L151">    QueueStatusResponse status = new QueueStatusResponse(</span>
+<span class="fc" id="L152">        queue.getId(),</span>
+<span class="fc" id="L153">        queue.getName(),</span>
+<span class="fc" id="L154">        queue.getTaskCount(),</span>
+<span class="fc" id="L155">        queue.getResultCount(),</span>
+<span class="fc" id="L156">        queue.hasPendingTasks()</span>
+    );
+    
+<span class="fc" id="L159">    return ResponseEntity.ok(status);</span>
+  }
+
+  /**
+   * Administrative endpoint to clear all queues from memory and persistence.
+   * This is useful for testing and cleanup. Use with caution in production.
+   *
+   * &lt;p&gt;&lt;b&gt;WARNING:&lt;/b&gt; This operation is destructive and cannot be undone.
+   * All queues, tasks, and results will be permanently deleted.
+   *
+   * @return OK response if successful
+   */
+  @DeleteMapping(&quot;/admin/clear&quot;)
+  public ResponseEntity&lt;ClearAllResponse&gt; clearAllQueues() {
+<span class="fc" id="L173">    log.warn(&quot;clearAllQueues - Administrative clear requested&quot;);</span>
+<span class="fc" id="L174">    int queueCount = queueService.getAllQueueCount();</span>
+<span class="fc" id="L175">    queueService.clearAll();</span>
+<span class="fc" id="L176">    log.info(&quot;clearAllQueues - Cleared {} queues&quot;, queueCount);</span>
+    
+<span class="fc" id="L178">    ClearAllResponse response = new ClearAllResponse(</span>
+        &quot;All queues cleared successfully&quot;,
+        queueCount
+    );
+    
+<span class="fc" id="L183">    return ResponseEntity.ok(response);</span>
+  }
+
+  /**
+   * Handles IllegalArgumentException by returning a BAD_REQUEST response.
+   *
+   * @param ex the exception to handle
+   * @return a BAD_REQUEST response with the exception message
+   */
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity&lt;String&gt; handleBadRequest(IllegalArgumentException ex) {
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">    if (log.isWarnEnabled()) {</span>
+<span class="fc" id="L195">      log.warn(&quot;badRequest error={}&quot;, ex.getMessage());</span>
+    }
+<span class="fc" id="L197">    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());</span>
+  }
+
+  /**
+   * Handles IllegalStateException by returning a NOT_FOUND response.
+   *
+   * @param ex the exception to handle
+   * @return a NOT_FOUND response with the exception message
+   */
+  @ExceptionHandler(IllegalStateException.class)
+  public ResponseEntity&lt;String&gt; handleNotFound(IllegalStateException ex) {
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">    if (log.isWarnEnabled()) {</span>
+<span class="fc" id="L209">      log.warn(&quot;notFound error={}&quot;, ex.getMessage());</span>
+    }
+<span class="fc" id="L211">    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());</span>
+  }
+
+  /**
+   * Request DTO for creating a new queue.
+   */
+<span class="fc" id="L217">  public static class CreateQueueRequest {</span>
+    private String name;
+
+    /**
+     * Gets the queue name.
+     *
+     * @return the queue name
+     */
+    public String getName() {
+<span class="fc" id="L226">      return name;</span>
+    }
+
+    /**
+     * Sets the queue name.
+     *
+     * @param name the queue name
+     */
+    public void setName(String name) {
+<span class="fc" id="L235">      this.name = name;</span>
+<span class="fc" id="L236">    }</span>
+  }
+
+  /**
+   * Request DTO for enqueuing a task.
+   */
+<span class="fc" id="L242">  public static class EnqueueTaskRequest {</span>
+    private String params;
+    private int priority;
+
+    /**
+     * Gets the task parameters.
+     *
+     * @return the task parameters
+     */
+    public String getParams() {
+<span class="fc" id="L252">      return params;</span>
+    }
+
+    /**
+     * Sets the task parameters.
+     *
+     * @param params the task parameters
+     */
+    public void setParams(String params) {
+<span class="fc" id="L261">      this.params = params;</span>
+<span class="fc" id="L262">    }</span>
+
+    /**
+     * Gets the task priority.
+     *
+     * @return the task priority
+     */
+    public int getPriority() {
+<span class="fc" id="L270">      return priority;</span>
+    }
+
+    /**
+     * Sets the task priority.
+     *
+     * @param priority the task priority
+     */
+    public void setPriority(int priority) {
+<span class="fc" id="L279">      this.priority = priority;</span>
+<span class="fc" id="L280">    }</span>
+  }
+
+  /**
+   * Request DTO for submitting a task result.
+   */
+<span class="fc" id="L286">  public static class SubmitResultRequest {</span>
+    private UUID taskId;
+    private String output;
+    private Result.ResultStatus status;
+
+    /**
+     * Gets the task ID.
+     *
+     * @return the task ID
+     */
+    public UUID getTaskId() {
+<span class="fc" id="L297">      return taskId;</span>
+    }
+
+    /**
+     * Sets the task ID.
+     *
+     * @param taskId the task ID
+     */
+    public void setTaskId(UUID taskId) {
+<span class="fc" id="L306">      this.taskId = taskId;</span>
+<span class="fc" id="L307">    }</span>
+
+    /**
+     * Gets the task output.
+     *
+     * @return the task output
+     */
+    public String getOutput() {
+<span class="fc" id="L315">      return output;</span>
+    }
+
+    /**
+     * Sets the task output.
+     *
+     * @param output the task output
+     */
+    public void setOutput(String output) {
+<span class="fc" id="L324">      this.output = output;</span>
+<span class="fc" id="L325">    }</span>
+
+    /**
+     * Gets the result status.
+     *
+     * @return the result status
+     */
+    public Result.ResultStatus getStatus() {
+<span class="fc" id="L333">      return status;</span>
+    }
+
+    /**
+     * Sets the result status.
+     *
+     * @param status the result status
+     */
+    public void setStatus(Result.ResultStatus status) {
+<span class="fc" id="L342">      this.status = status;</span>
+<span class="fc" id="L343">    }</span>
+  }
+
+  /**
+   * Response DTO for clear all operation.
+   */
+  public static class ClearAllResponse {
+    private String message;
+    private int queuesCleared;
+
+    /**
+     * Constructor with fields.
+     *
+     * @param message the response message
+     * @param queuesCleared the number of queues that were cleared
+     */
+<span class="fc" id="L359">    public ClearAllResponse(String message, int queuesCleared) {</span>
+<span class="fc" id="L360">      this.message = message;</span>
+<span class="fc" id="L361">      this.queuesCleared = queuesCleared;</span>
+<span class="fc" id="L362">    }</span>
+
+    /**
+     * Gets the response message.
+     *
+     * @return the message
+     */
+    public String getMessage() {
+<span class="fc" id="L370">      return message;</span>
+    }
+
+    /**
+     * Sets the response message.
+     *
+     * @param message the message
+     */
+    public void setMessage(String message) {
+<span class="nc" id="L379">      this.message = message;</span>
+<span class="nc" id="L380">    }</span>
+
+    /**
+     * Gets the number of queues cleared.
+     *
+     * @return the number of queues cleared
+     */
+    public int getQueuesCleared() {
+<span class="fc" id="L388">      return queuesCleared;</span>
+    }
+
+    /**
+     * Sets the number of queues cleared.
+     *
+     * @param queuesCleared the number of queues cleared
+     */
+    public void setQueuesCleared(int queuesCleared) {
+<span class="nc" id="L397">      this.queuesCleared = queuesCleared;</span>
+<span class="nc" id="L398">    }</span>
+  }
+
+  /**
+   * Response DTO for queue status information.
+   * Used by aggregators to poll for queue completion status.
+   */
+  public static class QueueStatusResponse {
+    private UUID id;
+    private String name;
+    private int pendingTaskCount;
+    private int completedResultCount;
+    private boolean hasPendingTasks;
+
+    /**
+     * Constructor with all fields.
+     *
+     * @param id the queue ID
+     * @param name the queue name
+     * @param pendingTaskCount the number of pending tasks in the queue
+     * @param completedResultCount the number of completed results
+     * @param hasPendingTasks whether the queue has any pending tasks
+     */
+    public QueueStatusResponse(UUID id, String name, int pendingTaskCount,
+<span class="fc" id="L422">                               int completedResultCount, boolean hasPendingTasks) {</span>
+<span class="fc" id="L423">      this.id = id;</span>
+<span class="fc" id="L424">      this.name = name;</span>
+<span class="fc" id="L425">      this.pendingTaskCount = pendingTaskCount;</span>
+<span class="fc" id="L426">      this.completedResultCount = completedResultCount;</span>
+<span class="fc" id="L427">      this.hasPendingTasks = hasPendingTasks;</span>
+<span class="fc" id="L428">    }</span>
+
+    /**
+     * Gets the queue ID.
+     *
+     * @return the queue ID
+     */
+    public UUID getId() {
+<span class="fc" id="L436">      return id;</span>
+    }
+
+    /**
+     * Sets the queue ID.
+     *
+     * @param id the queue ID
+     */
+    public void setId(UUID id) {
+<span class="nc" id="L445">      this.id = id;</span>
+<span class="nc" id="L446">    }</span>
+
+    /**
+     * Gets the queue name.
+     *
+     * @return the queue name
+     */
+    public String getName() {
+<span class="fc" id="L454">      return name;</span>
+    }
+
+    /**
+     * Sets the queue name.
+     *
+     * @param name the queue name
+     */
+    public void setName(String name) {
+<span class="nc" id="L463">      this.name = name;</span>
+<span class="nc" id="L464">    }</span>
+
+    /**
+     * Gets the number of pending tasks.
+     *
+     * @return the pending task count
+     */
+    public int getPendingTaskCount() {
+<span class="fc" id="L472">      return pendingTaskCount;</span>
+    }
+
+    /**
+     * Sets the number of pending tasks.
+     *
+     * @param pendingTaskCount the pending task count
+     */
+    public void setPendingTaskCount(int pendingTaskCount) {
+<span class="nc" id="L481">      this.pendingTaskCount = pendingTaskCount;</span>
+<span class="nc" id="L482">    }</span>
+
+    /**
+     * Gets the number of completed results.
+     *
+     * @return the completed result count
+     */
+    public int getCompletedResultCount() {
+<span class="fc" id="L490">      return completedResultCount;</span>
+    }
+
+    /**
+     * Sets the number of completed results.
+     *
+     * @param completedResultCount the completed result count
+     */
+    public void setCompletedResultCount(int completedResultCount) {
+<span class="nc" id="L499">      this.completedResultCount = completedResultCount;</span>
+<span class="nc" id="L500">    }</span>
+
+    /**
+     * Gets whether the queue has pending tasks.
+     *
+     * @return true if there are pending tasks, false otherwise
+     */
+    public boolean isHasPendingTasks() {
+<span class="fc" id="L508">      return hasPendingTasks;</span>
+    }
+
+    /**
+     * Sets whether the queue has pending tasks.
+     *
+     * @param hasPendingTasks true if there are pending tasks, false otherwise
+     */
+    public void setHasPendingTasks(boolean hasPendingTasks) {
+<span class="nc" id="L517">      this.hasPendingTasks = hasPendingTasks;</span>
+<span class="nc" id="L518">    }</span>
+  }
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

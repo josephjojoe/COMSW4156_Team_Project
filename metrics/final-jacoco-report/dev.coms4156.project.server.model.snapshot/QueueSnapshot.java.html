@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueueSnapshot.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Server</a> &gt; <a href="index.source.html" class="el_package">dev.coms4156.project.server.model.snapshot</a> &gt; <span class="el_source">QueueSnapshot.java</span></div><h1>QueueSnapshot.java</h1><pre class="source lang-java linenums">package dev.coms4156.project.server.model.snapshot;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Snapshot representation of a Queue for serialization.
+ * Contains queue metadata and all its tasks and results.
+ */
+public class QueueSnapshot {
+  private String id;
+  private String name;
+  private List&lt;TaskSnapshot&gt; tasks;
+  private List&lt;ResultSnapshot&gt; results;
+
+  /**
+   * Default constructor.
+   */
+<span class="fc" id="L19">  public QueueSnapshot() {</span>
+<span class="fc" id="L20">    this.tasks = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L21">    this.results = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L22">  }</span>
+
+  /**
+   * Constructor with parameters.
+   *
+   * @param id      queue ID
+   * @param name    queue name
+   * @param tasks   list of tasks
+   * @param results list of results
+   */
+  public QueueSnapshot(String id, String name, List&lt;TaskSnapshot&gt; tasks,
+<span class="nc" id="L33">                       List&lt;ResultSnapshot&gt; results) {</span>
+<span class="nc" id="L34">    this.id = id;</span>
+<span class="nc" id="L35">    this.name = name;</span>
+<span class="nc" id="L36">    this.tasks = tasks;</span>
+<span class="nc" id="L37">    this.results = results;</span>
+<span class="nc" id="L38">  }</span>
+
+  /**
+   * Gets the queue ID.
+   *
+   * @return queue ID as string
+   */
+  public String getId() {
+<span class="fc" id="L46">    return id;</span>
+  }
+
+  /**
+   * Sets the queue ID.
+   *
+   * @param id queue ID as string
+   */
+  public void setId(String id) {
+<span class="fc" id="L55">    this.id = id;</span>
+<span class="fc" id="L56">  }</span>
+
+  /**
+   * Gets the queue name.
+   *
+   * @return queue name
+   */
+  public String getName() {
+<span class="fc" id="L64">    return name;</span>
+  }
+
+  /**
+   * Sets the queue name.
+   *
+   * @param name queue name
+   */
+  public void setName(String name) {
+<span class="fc" id="L73">    this.name = name;</span>
+<span class="fc" id="L74">  }</span>
+
+  /**
+   * Gets the list of task snapshots.
+   *
+   * @return list of task snapshots
+   */
+  public List&lt;TaskSnapshot&gt; getTasks() {
+<span class="fc" id="L82">    return tasks;</span>
+  }
+
+  /**
+   * Sets the list of task snapshots.
+   *
+   * @param tasks list of task snapshots
+   */
+  public void setTasks(List&lt;TaskSnapshot&gt; tasks) {
+<span class="fc" id="L91">    this.tasks = tasks;</span>
+<span class="fc" id="L92">  }</span>
+
+  /**
+   * Gets the list of result snapshots.
+   *
+   * @return list of result snapshots
+   */
+  public List&lt;ResultSnapshot&gt; getResults() {
+<span class="fc" id="L100">    return results;</span>
+  }
+
+  /**
+   * Sets the list of result snapshots.
+   *
+   * @param results list of result snapshots
+   */
+  public void setResults(List&lt;ResultSnapshot&gt; results) {
+<span class="fc" id="L109">    this.results = results;</span>
+<span class="fc" id="L110">  }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

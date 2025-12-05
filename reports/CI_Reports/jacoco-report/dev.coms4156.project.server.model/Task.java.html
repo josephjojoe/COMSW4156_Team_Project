@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Task.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Server</a> &gt; <a href="index.source.html" class="el_package">dev.coms4156.project.server.model</a> &gt; <span class="el_source">Task.java</span></div><h1>Task.java</h1><pre class="source lang-java linenums">package dev.coms4156.project.server.model;
+
+import java.util.UUID;
+
+/**
+ * This class represents a single task in a queue that can be
+ * processed by workers. Tasks are prioritized and track their
+ * execution status throughout their lifecycle.
+ */
+public class Task implements Comparable&lt;Task&gt; {
+
+  /**
+   * Enum representing the various states a task can be in.
+   */
+<span class="fc" id="L15">  public enum TaskStatus {</span>
+<span class="fc" id="L16">    PENDING,</span>
+<span class="fc" id="L17">    IN_PROGRESS,</span>
+<span class="fc" id="L18">    COMPLETED,</span>
+<span class="fc" id="L19">    FAILED</span>
+  }
+
+  private final UUID id;
+  private final String params;
+  private final int priority;
+  private TaskStatus status;
+
+
+  /**
+   * Constructs a new {@code Task} with the specified parameters and priority.
+   * The task is initialized with a unique ID and PENDING status.
+   *
+   * @param params the task parameters as a JSON string or plain text
+   * @param priority the priority level (lower values = higher priority)
+   */
+<span class="fc" id="L35">  public Task(String params, int priority) {</span>
+<span class="fc" id="L36">    this.id = UUID.randomUUID();</span>
+<span class="fc" id="L37">    this.params = params;</span>
+<span class="fc" id="L38">    this.priority = priority;</span>
+<span class="fc" id="L39">    this.status = TaskStatus.PENDING;</span>
+<span class="fc" id="L40">  }</span>
+
+  /**
+   * Constructs a {@code Task} with a specific ID and status.
+   * Used for restoring tasks from persistence snapshots.
+   *
+   * @param id the task's UUID (must not be null)
+   * @param params the task parameters as a JSON string or plain text
+   * @param priority the priority level (lower values = higher priority)
+   * @param status the task status
+   */
+<span class="fc" id="L51">  public Task(UUID id, String params, int priority, TaskStatus status) {</span>
+<span class="fc" id="L52">    this.id = id;</span>
+<span class="fc" id="L53">    this.params = params;</span>
+<span class="fc" id="L54">    this.priority = priority;</span>
+<span class="fc" id="L55">    this.status = status;</span>
+<span class="fc" id="L56">  }</span>
+
+
+  /**
+   * Returns the unique task identifier.
+   *
+   * @return the task's UUID
+   */
+  public UUID getId() {
+<span class="fc" id="L65">    return id;</span>
+  }
+
+
+  /**
+   * Returns the task parameters as a JSON-formatted string.
+   * 
+   * &lt;p&gt;The params field contains job-specific data needed by workers
+   * to execute the task. The format is a JSON string that can be
+   * parsed by workers according to their specific task type.
+   * 
+   * &lt;p&gt;&lt;b&gt;Format:&lt;/b&gt; Valid JSON string representation
+   * 
+   * &lt;p&gt;&lt;b&gt;Example for PDF processing:&lt;/b&gt;
+   * &lt;pre&gt;
+   * {@code
+   * {
+   *   &quot;pageNumber&quot;: 5,
+   *   &quot;pdfPath&quot;: &quot;/uploads/textbook.pdf&quot;,
+   *   &quot;outputFormat&quot;: &quot;png&quot;,
+   *   &quot;resolution&quot;: 300
+   * }
+   * }
+   * &lt;/pre&gt;
+   * 
+   * &lt;p&gt;&lt;b&gt;Example for video processing:&lt;/b&gt;
+   * &lt;pre&gt;
+   * {@code
+   * {
+   *   &quot;videoClip&quot;: &quot;clip3.mp4&quot;,
+   *   &quot;aspectRatio&quot;: &quot;16:9&quot;,
+   *   &quot;addCaptions&quot;: true,
+   *   &quot;targetFormat&quot;: &quot;mp4&quot;
+   * }
+   * }
+   * &lt;/pre&gt;
+   * 
+   * &lt;p&gt;&lt;b&gt;Example for ML model training:&lt;/b&gt;
+   * &lt;pre&gt;
+   * {@code
+   * {
+   *   &quot;modelType&quot;: &quot;CNN&quot;,
+   *   &quot;epochs&quot;: 50,
+   *   &quot;learningRate&quot;: 0.001,
+   *   &quot;batchSize&quot;: 32,
+   *   &quot;dataset&quot;: &quot;imagenet&quot;
+   * }
+   * }
+   * &lt;/pre&gt;
+   * 
+   * &lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; The task queue service does not validate or parse
+   * these parameters. It is the responsibility of workers to parse the
+   * JSON and extract the fields relevant to their task type.
+   *
+   * @return the parameters as a JSON-formatted string
+   */
+  public String getParams() {
+<span class="fc" id="L122">    return params;</span>
+  }
+
+
+  /**
+   * Returns the task priority level.
+   *
+   * @return the priority value
+   */
+  public int getPriority() {
+<span class="fc" id="L132">    return priority;</span>
+  }
+
+
+  /**
+   * Returns the current status of the task.
+   *
+   * @return the task status
+   */
+  public TaskStatus getStatus() {
+<span class="fc" id="L142">    return status;</span>
+  }
+
+
+  /**
+   * Updates the task status.
+   *
+   * @param status the new status to set
+   */
+  public synchronized void setStatus(TaskStatus status) {
+<span class="fc" id="L152">    this.status = status;</span>
+<span class="fc" id="L153">  }</span>
+
+
+  /**
+   * Compares this task to another based on priority.
+   * Lower priority values are considered higher priority
+   * and will be processed first.
+   *
+   * @param other the task to compare to
+   * @return negative if this task has higher priority,
+   *         positive if lower priority, 0 if equal
+   */
+  @Override
+  public int compareTo(Task other) {
+<span class="fc" id="L167">    return Integer.compare(this.priority, other.priority);</span>
+  }
+
+  /**
+   * Two tasks are equal if and only if they have the same unique ID.
+   * Note: This means equals() is not consistent with compareTo(), which is
+   * acceptable since PriorityBlockingQueue does not require consistency
+   * between these methods.
+   */
+  @Override
+  public boolean equals(Object obj) {
+<span class="fc bfc" id="L178" title="All 2 branches covered.">    if (this == obj) {</span>
+<span class="fc" id="L179">      return true;</span>
+    }
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">    if (!(obj instanceof Task)) {</span>
+<span class="nc" id="L182">      return false;</span>
+    }
+<span class="fc" id="L184">    Task other = (Task) obj;</span>
+<span class="fc" id="L185">    return this.id.equals(other.id);</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="fc" id="L190">    return id.hashCode();</span>
+  }
+
+
+  /**
+   * Returns a string representation of this task.
+   *
+   * @return a string containing the task's key attributes
+   */
+  @Override
+  public String toString() {
+<span class="fc" id="L201">    return &quot;Task{&quot;</span>
+            + &quot;id=&quot; + id
+            + &quot;, priority=&quot; + priority
+            + &quot;, status=&quot; + status
+            + &quot;, params='&quot; + params + '\''
+            + '}';
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

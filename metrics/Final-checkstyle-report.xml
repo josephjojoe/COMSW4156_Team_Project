@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="9.3">
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/java/dev/coms4156/project/server/model/QueueStore.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/java/dev/coms4156/project/server/model/Task.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/java/dev/coms4156/project/server/model/Result.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/java/dev/coms4156/project/server/model/snapshot/ResultSnapshot.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/java/dev/coms4156/project/server/model/snapshot/SnapshotData.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/java/dev/coms4156/project/server/model/snapshot/QueueSnapshot.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/java/dev/coms4156/project/server/model/snapshot/TaskSnapshot.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/java/dev/coms4156/project/server/model/Queue.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/java/dev/coms4156/project/server/GroupProjectApplication.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/java/dev/coms4156/project/server/service/QueueService.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/java/dev/coms4156/project/server/controller/QueueController.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/test/java/dev/coms4156/project/server/QueueStoreAndQueueIntegrationTests.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/test/java/dev/coms4156/project/server/QueueUnitTests.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/test/java/dev/coms4156/project/server/QueueServiceUnitTests.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/test/java/dev/coms4156/project/server/QueueStoreUnitTests.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/test/java/dev/coms4156/project/server/QueueAndTaskIntegrationTests.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/test/java/dev/coms4156/project/server/ResultUnitTests.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/test/java/dev/coms4156/project/server/QueueAndResultIntegrationTests.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/test/java/dev/coms4156/project/server/QueueControllerIntegrationTests.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/test/java/dev/coms4156/project/server/TaskUnitTests.java">
+</file>
+<file name="/home/runner/work/COMSW4156_Team_Project/COMSW4156_Team_Project/server/src/main/resources/application.properties">
+</file>
+</checkstyle>
