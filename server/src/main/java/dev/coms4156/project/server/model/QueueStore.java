@@ -287,8 +287,10 @@ public final class QueueStore {
               queue.enqueue(task);
               totalTasks++;
             } catch (IllegalArgumentException e) {
-              log.warn("Skipping task with invalid data (id: {}, status: {}): {}",
-                  taskSnap.getId(), taskSnap.getStatus(), e.getMessage());
+              if (log.isWarnEnabled()) {
+                log.warn("Skipping task with invalid data (id: {}, status: {}): {}",
+                      taskSnap.getId(), taskSnap.getStatus(), e.getMessage());
+              }
             }
           }
         }
@@ -305,8 +307,10 @@ public final class QueueStore {
               queue.addResult(result);
               totalResults++;
             } catch (IllegalArgumentException e) {
-              log.warn("Skipping result with invalid data (taskId: {}, status: {}): {}",
-                  resultSnap.getTaskId(), resultSnap.getStatus(), e.getMessage());
+              if (log.isWarnEnabled()) {
+                log.warn("Skipping result with invalid data (taskId: {}, status: {}): {}",
+                      resultSnap.getTaskId(), resultSnap.getStatus(), e.getMessage());
+              }
             }
           }
         }
