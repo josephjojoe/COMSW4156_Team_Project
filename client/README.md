@@ -86,9 +86,9 @@ storage:
   metadata_dir: "storage/metadata"
 
 llm:
-  provider: "openai"  
-  api_key: ${OPENAI_API_KEY} # Adjust to api key as needed, default api_key in congig.yaml is null
-  model: "mock-model"
+  provider: "openrouter"
+  api_key: ${OPENROUTER_API_KEY}  # Uses environment variable
+  model: "google/gemma-3-27b-it:free"
   max_questions_per_page: 5
 
 worker: # Adjust worker parameters as needed
@@ -404,6 +404,7 @@ export OPENAI_API_KEY="sk-..."
 - `openai` - OpenAI GPT-4o, GPT-4 Turbo
 - `anthropic` - Claude 3.5 Sonnet, Claude 3 Opus
 - `gemini` - Gemini 1.5 Flash, Gemini 1.5 Pro
+- `openrouter` - Any model available via OpenRouter (e.g., Gemma 3)
 - `mock` - Fake responses for testing (no API calls)
 
 ### Worker Section
@@ -729,4 +730,3 @@ Test against a running queue service (localhost:8080 by default). Verify your cl
 7. Test complete workflow end-to-end
 
 For detailed examples, refer to the PDF Quiz Generator client implementation in this repository. The `queue_client.py` module demonstrates all API interactions.
-

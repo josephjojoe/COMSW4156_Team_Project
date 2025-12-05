@@ -13,22 +13,23 @@ storage:
 
 # LLM Service Settings
 llm:
-  # Provider: "openai", "anthropic", "gemini", or "mock"
-  provider: "mock"
+  # Provider: "openrouter" (default, real LLM via OpenRouter) or "mock"
+  provider: "openrouter"
   
   # API Key (use environment variable for security)
   # Examples:
-  #   - For OpenAI: Set OPENAI_API_KEY environment variable
-  #   - For Anthropic: Set ANTHROPIC_API_KEY environment variable
+  #   - For OpenRouter: Set OPENROUTER_API_KEY environment variable
   #   - For mock mode: Leave as null
-  api_key: null # Or ${ANTHROPIC_API_KEY}
+  api_key: ${OPENROUTER_API_KEY}
   
   # Model Selection
-  # OpenAI: "gpt-4o", "gpt-4-turbo"
-  # Anthropic: "claude-3-5-sonnet-20241022", "claude-3-opus-20240229"
-  # Gemini: "gemini-1.5-flash", "gemini-1.5-pro"
-  # Mock: "mock-model"
-  model: "mock-model"
+  # Use any model identifier supported by OpenRouter, for example:
+  #   - "openai/gpt-4o-mini"
+  #   - "meta-llama/llama-3.1-8b-instruct"
+  # For mock mode you can leave this as-is.
+  # In your shell before running the client, set the API key, for example:
+  #   export OPENROUTER_API_KEY="sk-or-your-api-key"
+  model: "google/gemma-3-27b-it"
   
   # Questions per page
   max_questions_per_page: 5

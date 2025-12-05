@@ -4,15 +4,12 @@ LLM Service Module.
 This module provides a small, testable wrapper around large language model
 providers for generating quiz questions from textbook page images.
 
-Current implementation
-----------------------
+Providers
+---------
 
-For this iteration we only support a **mock provider**. The goal is to allow
-end‑to‑end development and testing of the PDF → worker → aggregator pipeline
-without requiring real API keys or incurring any LLM costs.
-
-The class is intentionally designed so that real providers (OpenAI/Anthropic)
-can be added later without changing the public interface.
+- ``openrouter`` – default provider backed by the OpenRouter API.
+- ``mock`` – deterministic, local mock used for testing and as a safe fallback
+  when the OpenRouter API key is missing or invalid.
 """
 
 from __future__ import annotations
@@ -23,6 +20,8 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +40,9 @@ class LLMServiceConfig:
     isolation during testing.
     """
 
-    provider: str = "mock"
+    provider: str = "openrouter"
     api_key: str | None = None
-    model: str = "mock-model"
+    model: str = "google/gemma-3-27b-it:free"
     max_questions: int = 3
 
 
@@ -71,20 +70,24 @@ class LLMService:
 
     def __init__(
         self,
-        provider: str = "mock",
+        provider: str = "openrouter",
         api_key: str | None = None,
-        model: str = "mock-model",
+        model: str = "google/gemma-3-27b-it:free",
         max_questions: int = 3,
     ) -> None:
         """
         Initialize the LLM service.
 
         Args:
-            provider: Which provider to use. For now only ``\"mock\"`` is
-                supported. Future values may include ``\"openai\"`` or
-                ``\"anthropic\"``.
-            api_key: API key for the provider. Ignored for ``\"mock\"``.
-            model: Model name to use (provider specific). Ignored for mock.
+            provider: Which provider to use. Supported values:
+
+                - ``"openrouter"`` (default)
+                - ``"mock"``
+
+            api_key: API key for the provider. Required for ``"openrouter"``;
+                ignored for ``"mock"``. If the OpenRouter key is missing or
+                invalid the service will automatically fall back to mock mode.
+            model: Model name to use (provider specific).
             max_questions: Maximum number of questions to generate per page.
 
         Raises:
@@ -95,12 +98,12 @@ class LLMService:
         self.model = model
         self.max_questions = max(1, int(max_questions))
 
-        if self.provider not in {"mock"}:
-            # We deliberately fail fast here so that misconfiguration is
-            # obvious and does not silently fall back to a different provider.
+        if self.provider not in {"openrouter", "mock"}:
+            # Fail fast so that misconfiguration is obvious and does not
+            # silently fall back to a different provider.
             raise ValueError(
                 f"Unsupported provider '{provider}'. "
-                "For this iteration only 'mock' is supported."
+                "Supported providers are: 'openrouter', 'mock'."
             )
 
         logger.debug(
@@ -149,9 +152,10 @@ class LLMService:
 
             if self.provider == "mock":
                 return self._call_mock(image_b64, prompt, page_num)
+            if self.provider == "openrouter":
+                return self._call_openrouter(image_b64, prompt, page_num)
 
-            # Unreachable for now because we validate provider in __init__,
-            # but kept for forward compatibility.
+            # Defensive: __init__ should already have validated provider.
             raise LLMServiceError(f"Unsupported provider at runtime: {self.provider}")
         except LLMServiceError:
             # Bubble up our own error type unchanged.
@@ -242,6 +246,165 @@ class LLMService:
         )
         return questions
 
+    def _call_openrouter(
+        self,
+        image_b64: str,
+        prompt: str,
+        page_num: int,
+    ) -> List[Dict[str, str]]:
+        """
+        Call the OpenRouter chat completions API to generate Q&A pairs.
+
+        Behavior:
+            - If no API key is configured, logs a warning and falls back to
+              :meth:`_call_mock`.
+            - If the API key is invalid (401/403) or the HTTP request fails,
+              logs an error and falls back to :meth:`_call_mock`.
+            - For other HTTP errors or unexpected response formats, raises
+              :class:`LLMServiceError`.
+        """
+        if not self.api_key:
+            logger.warning(
+                "No OpenRouter API key configured; falling back to mock provider."
+            )
+            return self._call_mock(image_b64, prompt, page_num)
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            # These headers are recommended by OpenRouter for attribution,
+            # but they are not strictly required for correctness.
+            "HTTP-Referer": "http://localhost",
+            "X-Title": "PDF Quiz Generator",
+        }
+
+        # Compose a chat-style request. We instruct the model to return ONLY a
+        # JSON array of {question, answer} objects so that the parsing helper
+        # can be reused.
+        system_message = (
+            "You are a helpful teaching assistant generating flashcard-style quiz "
+            "questions from textbook pages. "
+            "Return ONLY a JSON array of objects, each with 'question' and "
+            "'answer' string fields. Do not include any extra commentary."
+        )
+        user_instructions = (
+            f"Generate up to {self.max_questions} concise question/answer pairs "
+            f"based on this textbook page (page {page_num}). "
+            "Focus on key concepts, definitions, and how they are applied. "
+            "Again, respond ONLY with JSON."
+        )
+
+        # Some providers (notably the Google-backed Gemma 3 API) do not yet
+        # support separate system / developer messages and will return a 400
+        # if we send them. For those models we fold the system instructions
+        # into the user message so the prompt is still respected.
+        model_name = (self.model or "google/gemma-3-27b-it:free").lower()
+        if "google/gemma-3" in model_name:
+            combined_instructions = f"{system_message} {user_instructions}"
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": combined_instructions},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{image_b64}",
+                            },
+                        },
+                    ],
+                }
+            ]
+        else:
+            messages = [
+                {"role": "system", "content": system_message},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_instructions},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{image_b64}",
+                            },
+                        },
+                    ],
+                },
+            ]
+
+        payload = {
+            "model": self.model or "google/gemma-3-27b-it:free",
+            "messages": messages,
+        }
+
+        # Prefer structured / JSON-formatted output when supported by the model.
+        #
+        # OpenRouter exposes an OpenAI-style ``response_format`` parameter that,
+        # for compatible models (including Gemma 3 27B via OpenRouter), strongly
+        # biases the response to be valid JSON. We still keep natural-language
+        # instructions in the prompt, but this flag dramatically reduces the
+        # chances of getting non-JSON text that would cause parsing failures.
+        #
+        # For models that ignore or do not support this parameter, behaviour
+        # falls back to the regular text response and our parser remains
+        # defensive.
+        payload["response_format"] = {"type": "json_object"}
+
+        try:
+            response = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=60,
+            )
+        except requests.RequestException as exc:  # pragma: no cover - network
+            logger.error(
+                "OpenRouter request failed (%s); falling back to mock provider.", exc
+            )
+            return self._call_mock(image_b64, prompt, page_num)
+
+        if response.status_code in (401, 403):
+            logger.error(
+                "OpenRouter authentication failed with status %s; "
+                "falling back to mock provider.",
+                response.status_code,
+            )
+            return self._call_mock(image_b64, prompt, page_num)
+
+        if not response.ok:
+            # For non-auth HTTP errors we surface an explicit error so that
+            # calling code can decide how to handle it.
+            raise LLMServiceError(
+                f"OpenRouter API error: {response.status_code} {response.text[:200]}"
+            )
+
+        try:
+            data = response.json()
+        except ValueError as exc:  # pragma: no cover - defensive
+            raise LLMServiceError(
+                f"OpenRouter returned non-JSON response: {exc}"
+            ) from exc
+
+        try:
+            content = data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise LLMServiceError(
+                f"Unexpected OpenRouter response structure: {exc}"
+            ) from exc
+
+        # Depending on the model, content may be a string or a list of parts.
+        if isinstance(content, list):
+            text_parts = []
+            for part in content:
+                if isinstance(part, dict) and part.get("type") == "text":
+                    text_parts.append(part.get("text", ""))
+            content_text = "\n".join(text_parts)
+        else:
+            content_text = str(content)
+
+        return _parse_qa_pairs_from_json(content_text)
+
 
 def _parse_qa_pairs_from_json(text: str) -> List[Dict[str, str]]:
     """
@@ -250,16 +413,95 @@ def _parse_qa_pairs_from_json(text: str) -> List[Dict[str, str]]:
     This is not used by the mock provider but is kept as a small, focused
     helper that can be reused when real LLM providers are introduced.
     """
-    try:
-        data = json.loads(text)
-    except json.JSONDecodeError as exc:  # pragma: no cover - defensive
-        raise LLMServiceError(f"Failed to decode LLM JSON response: {exc}") from exc
 
-    if not isinstance(data, list):
+    # Normalise and defensively extract JSON from common wrappers such as
+    # Markdown code fences or explanatory text that some models still add
+    # around the JSON, even when asked not to.
+    raw = text.strip()
+
+    # Strip Markdown ``` fences (optionally with a language hint).
+    if raw.startswith("```"):
+        lines = raw.splitlines()
+        if lines and lines[0].lstrip().startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].lstrip().startswith("```"):
+            lines = lines[:-1]
+        raw = "\n".join(lines).strip()
+
+    data: List[Dict[str, str]] | Dict[str, object]
+
+    # If the cleaned string does not start with a typical JSON delimiter,
+    # attempt to slice out the first top-level array as a best effort before
+    # falling back to a direct load.
+    if not (raw.startswith("[") or raw.startswith("{")):
+        start = raw.find("[")
+        end = raw.rfind("]")
+        if start != -1 and end != -1 and start < end:
+            candidate = raw[start : end + 1]
+            try:
+                data = json.loads(candidate)
+            except json.JSONDecodeError:
+                # Fall back to loading the entire string below so that the
+                # caller still receives a clear, debuggable error if parsing
+                # ultimately fails.
+                try:
+                    data = json.loads(raw)
+                except json.JSONDecodeError as exc:  # pragma: no cover - defensive
+                    raise LLMServiceError(
+                        f"Failed to decode LLM JSON response: {exc}"
+                    ) from exc
+        else:
+            try:
+                data = json.loads(raw)
+            except json.JSONDecodeError as exc:  # pragma: no cover - defensive
+                raise LLMServiceError(
+                    f"Failed to decode LLM JSON response: {exc}"
+                ) from exc
+    else:
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError as exc:  # pragma: no cover - defensive
+            raise LLMServiceError(f"Failed to decode LLM JSON response: {exc}") from exc
+
+    # At this point ``data`` is valid JSON. Historically we asked the model to
+    # return a bare list, but with ``response_format={"type": "json_object"}``
+    # many providers now return an object wrapper instead. We therefore accept:
+    #
+    #   1. A top-level list of {question, answer} dicts
+    #   2. A top-level object containing such a list under a common key
+    #      (e.g. "qa_pairs", "questions", "items")
+    #   3. A single {question, answer} object, which we normalise to a list
+    if isinstance(data, list):
+        items = data
+    elif isinstance(data, dict):
+        # Case 3: single object with question/answer fields
+        if isinstance(data.get("question"), str) and isinstance(data.get("answer"), str):
+            items = [data]  # type: ignore[assignment]
+        else:
+            # Case 2: search for the first list value that looks like Q&A pairs
+            candidate_list = None
+            # Try some likely keys first
+            for key in ("qa_pairs", "questions", "items", "cards"):
+                value = data.get(key)
+                if isinstance(value, list):
+                    candidate_list = value
+                    break
+            # Fallback: any list value
+            if candidate_list is None:
+                for value in data.values():
+                    if isinstance(value, list):
+                        candidate_list = value
+                        break
+
+            if candidate_list is None:
+                raise LLMServiceError("Expected a list of Q&A dictionaries from LLM")
+
+            items = candidate_list  # type: ignore[assignment]
+    else:
         raise LLMServiceError("Expected a list of Q&A dictionaries from LLM")
 
     results: List[Dict[str, str]] = []
-    for item in data:
+    for item in items:
         if not isinstance(item, dict):
             continue
         question = item.get("question")
