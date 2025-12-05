@@ -15,7 +15,7 @@ Got to:
 ___
 To build and use this service you must install the following (This guide assumes MacOS):
 1. Maven 3.9.11: : https://maven.apache.org/download.cgi Download and follow the installation instructions
-2. JDK 17: Project is configured for Java 17 in `GroupProject/pom.xml`. Install JDK 17 from: https://adoptium.net/temurin/releases/?version=17
+2. JDK 17: Project is configured for Java 17 in `server/pom.xml`. Install JDK 17 from: https://adoptium.net/temurin/releases/?version=17
 3. IntelliJ IDE: We recommend using IntelliJ but you are free to use any other IDE that you are comfortable with: https://www.jetbrains.com/idea/download/?section=windows
 4. If you wish to run the style checker you can with mvn checkstyle:check or mvn checkstyle:checkstyle if you wish to generate the report.
 
@@ -27,7 +27,7 @@ ___
 From the repository root, run the Spring Boot app:
 
 ```
-cd GroupProject
+cd server
 mvn spring-boot:run
 ```
 
@@ -36,7 +36,7 @@ The service starts on port 8080 by default.
 To build a runnable JAR:
 
 ```
-cd GroupProject
+cd server
 mvn clean package
 java -jar target/groupproject-0.0.1-SNAPSHOT.jar
 ```
@@ -44,7 +44,7 @@ java -jar target/groupproject-0.0.1-SNAPSHOT.jar
 ___
 
 ```
-cd GroupProject
+cd server
 mvn test
 ```
 
@@ -53,7 +53,7 @@ This runs all unit and integration tests.
 Code coverage (JaCoCo) report is generated at:
 
 ```
-GroupProject/target/site/jacoco/index.html
+server/target/site/jacoco/index.html
 ```
 
 Course requirement: minimum 55% coverage. We track this via the JaCoCo report (threshold not yet enforced in the build).
@@ -151,6 +151,30 @@ Base URL: `http://localhost:8080`
     curl -s http://localhost:8080/queue/<QUEUE_ID>/result/<TASK_ID>
     ```
 
+- GET `/queue/{id}/status` — Get queue status (for aggregators)
+  - Path params:
+    - `id` (UUID, queue ID)
+  - Responses:
+    - 200 OK: Status object `{ id, name, pendingTaskCount, completedResultCount, hasPendingTasks }`
+    - 404 Not Found: queue not found
+  - Use case: Aggregators poll this endpoint to check if all tasks have been processed
+
+  - curl example:
+    ```bash
+    curl -s http://localhost:8080/queue/<QUEUE_ID>/status
+    ```
+
+- DELETE `/queue/admin/clear` — Clear all queues (admin)
+  - **WARNING**: This operation is destructive and cannot be undone. All queues, tasks, and results will be permanently deleted.
+  - Responses:
+    - 200 OK: `{ message, queuesCleared }`
+  - Use case: Testing and cleanup
+
+  - curl example:
+    ```bash
+    curl -s -X DELETE http://localhost:8080/queue/admin/clear
+    ```
+
 # Quick curl walkthrough
 ___
 
@@ -189,13 +213,13 @@ do brew install jq if you do not have jq
 ___
 
 Unit Tests:
-- We document the set of equivalence partitions we defined for each unit, and which tests target which partition(s) in the header commenst of our testing files.
+- We document the set of equivalence partitions we defined for each unit, and which tests target which partition(s) in the header comments of our testing files.
 
 Api Tests:
-- We document the set of equivalence partitions we have defined for each end point, and which tests target which partition(s) in the header commenst of our testing files.
+- We document the set of equivalence partitions we have defined for each end point, and which tests target which partition(s) in the header comments of our testing files.
 
 Integration tests:
-- Internal: We document each test to explain what it is integrating with in th header comments of our integration testing files.
+- Internal: We document each test to explain what it is integrating with in the header comments of our integration testing files.
 
 - External: Our service does not interact with external systems such as databases, files, or third-party APIs.
 
@@ -245,7 +269,7 @@ Note: The plugin references `google_checks.xml`. Ensure this file is present in 
 
 # Static Analysis
 ___
-We use PMD as our static abalysis bug finder.
+We use PMD as our static analysis bug finder.
 - Run static analysis bug finder
   pmd check -d src -R rulesets/java/quickstart.xml -f xml
 
